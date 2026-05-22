@@ -1,0 +1,23 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "apps/api"
+    },
+    {
+      "path": "apps/scheduler"
+    },
+    {
+      "path": "apps/worker"
+    },
+    {
+      "path": "apps/integration"
+    },
+    {
+      "path": "apps/web-user"
+    },
+    {
+      "path": "apps/web-admin"
+    }
+  ]
+}
