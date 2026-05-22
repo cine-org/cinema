@@ -1,27 +1,38 @@
 ---
-name: Feature request
-about: Request a feature
-labels: feature
+name: Feature Request
+about: Suggest a new feature
+labels: enhancement
 ---
 
-## Description
+## Summary
 
-<!-- What should be added and why? -->
+<!-- Brief description of the feature -->
 
-## Scope
+## Problem Statement
 
-<!-- What is included and what is not? -->
+<!-- What problem does this solve? Why is it needed? -->
+
+## Proposed Solution
+
+<!-- Describe the proposed solution -->
 
 ## Acceptance Criteria
 
 - [ ]
 - [ ]
-- [ ]
 
-## Notes
+## Workflow Target
 
-<!-- Technical details, constraints, or references -->
+- [ ] PR to develop
+- [ ] Staging verification after merge
+- [ ] Include in next release checkpoint
+
+## Additional Context
+
+<!-- Wireframes, references, or any extra context -->
 
 ## Related
+
+<!-- Use Refs #123 for related issues or PRs that should stay open -->
 
 Refs #

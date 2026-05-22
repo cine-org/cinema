@@ -89,9 +89,7 @@ done
 echo "quality=$quality"
 echo "integration=$integration"
 
-if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
-  {
-    echo "quality=$quality"
-    echo "integration=$integration"
-  } >> "$GITHUB_OUTPUT"
-fi
+{
+  echo "quality=$quality"
+  echo "integration=$integration"
+} >> "$GITHUB_OUTPUT"

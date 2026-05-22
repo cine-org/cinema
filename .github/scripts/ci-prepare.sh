@@ -11,16 +11,6 @@ ci_load_test_env() {
   fi
 }
 
-ci_build_package_if_present() {
-  local package_name="$1"
-  local package_dir="$2"
-
-  if [[ -d "$package_dir" ]]; then
-    echo "Build ${package_name}..."
-    pnpm --filter "$package_name" build
-  fi
-}
-
 ci_prepare_workspace() {
   echo "Install deps..."
   pnpm install --frozen-lockfile
@@ -30,12 +20,11 @@ ci_prepare_workspace() {
   pnpm --filter @repo/jest-config build
   pnpm --filter @repo/vitest-config build
 
-  ci_build_package_if_present "@repo/contracts" "packages/contracts"
-  ci_build_package_if_present "@repo/shared" "modules/shared"
-  ci_build_package_if_present "@repo/database" "packages/database"
+  echo "Build shared runtime packages..."
+  pnpm --filter @repo/contracts build
+  pnpm --filter @repo/shared build
+  pnpm --filter @repo/database build
 
-  if [[ -d packages/api-client ]]; then
-    echo "Generate API client..."
-    pnpm --filter @repo/api-client generate
-  fi
+  echo "Generate API client..."
+  pnpm --filter @repo/api-client generate
 }

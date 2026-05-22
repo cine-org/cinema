@@ -1,14 +1,14 @@
 ---
-name: Bug report
+name: Bug Report
 about: Report a bug
 labels: bug
 ---
 
 ## Description
 
-<!-- What is broken? -->
+<!-- Clearly describe the bug and what part of the system is affected -->
 
-## Steps To Reproduce
+## Steps to Reproduce
 
 1.
 2.
@@ -16,16 +16,30 @@ labels: bug
 
 ## Expected Behavior
 
-<!-- What should happen? -->
+<!-- What should happen -->
 
 ## Actual Behavior
 
-<!-- What happens instead? -->
+<!-- What actually happens / error observed -->
 
-## Impact
+## Environment
 
-<!-- Who or what is affected? -->
+- Branch:
+- OS:
+- Browser (if applicable):
+
+## Evidence
+
+<!-- Screenshots, logs, stack traces -->
+
+## Workflow Target
+
+- [ ] Fix through PR to develop
+- [ ] Needs staging verification
+- [ ] Needs release/deploy after main merge
 
 ## Related
+
+<!-- Use Refs #123 for related issues or PRs that should stay open -->
 
 Refs #
