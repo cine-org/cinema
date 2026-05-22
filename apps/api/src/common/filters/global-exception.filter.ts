@@ -1,7 +1,9 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import { COMMON_ERROR_CODE, type ErrorDetail } from '@repo/contracts';
+import { AppException } from '@repo/shared';
 import { Response } from 'express';
 import { ZodError } from 'zod';
-import { COMMON_ERROR_CODE, createErrorResponse, type ErrorDetail } from '../responses';
+import { createErrorResponse } from '../responses';
 
 const DEFAULT_STATUS_ERROR_CODE: Record<number, string> = {
   [HttpStatus.BAD_REQUEST]: COMMON_ERROR_CODE.BAD_REQUEST,
@@ -23,6 +25,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse<Response>();
     const requestId = this.getRequestId(response);
+
+    if (exception instanceof AppException) {
+      return response.status(exception.status).json(
+        createErrorResponse({
+          message: exception.message,
+          code: exception.code,
+          errors: exception.details,
+          requestId,
+        }),
+      );
+    }
 
     if (exception instanceof ZodError) {
       return response.status(HttpStatus.BAD_REQUEST).json(
