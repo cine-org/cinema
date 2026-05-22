@@ -1,0 +1,32 @@
+{
+  "name": "@repo/api-client",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "license": "ISC",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "pnpm generate && tsc -b",
+    "dev": "tsc -b --watch",
+    "generate": "pnpm generate:openapi && pnpm generate:types",
+    "generate:openapi": "pnpm --filter @repo/api openapi:generate",
+    "generate:types": "openapi-typescript ../../apps/api/generated/openapi/schema.json -o src/generated/openapi/types.ts",
+    "typecheck": "pnpm generate && tsc -b --noEmit",
+    "test": "pnpm test:unit",
+    "test:unit": "vitest run --passWithNoTests \"**/*.spec.ts\"",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage --passWithNoTests \"**/*.spec.ts\""
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.15.0"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@repo/vitest-config": "workspace:*",
+    "@types/node": "^25.6.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "openapi-typescript": "^7.10.1",
+    "vitest": "^3.2.4"
+  }
+}
