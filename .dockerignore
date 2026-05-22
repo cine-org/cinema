@@ -1,0 +1,26 @@
+# 
+node_modules
+dist
+.turbo
+coverage
+.git
+.gitignore
+
+# 
+.eslintcache
+
+# env files
+.env
+.env.*
+
+# editor
+.vscode
+.idea
+.cursor
+
+# OS
+.DS_Store
+Thumbs.db
+
+# logs
+*.log

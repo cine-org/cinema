@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
-FROM node:22-alpine AS base
+ARG NODE_IMAGE=node:22-alpine
+FROM ${NODE_IMAGE} AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable pnpm
@@ -13,16 +14,22 @@ FROM base AS deps
 WORKDIR /repo
 COPY --from=pruner /repo/out/json/ .
 COPY --from=pruner /repo/out/pnpm-lock.yaml ./pnpm-lock.yaml
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --no-frozen-lockfile --ignore-scripts
 
 FROM deps AS builder
+ARG TURBO_TOKEN
+ARG TURBO_TEAM
+ENV TURBO_TOKEN=$TURBO_TOKEN
+ENV TURBO_TEAM=$TURBO_TEAM
 COPY --from=pruner /repo/out/full/ .
-RUN pnpm --filter @repo/integration build
+RUN --mount=type=cache,id=turbo-integration,target=/repo/.turbo \
+    pnpm exec turbo run build --filter=@repo/integration --cache-dir=.turbo
+RUN printf 'inject-workspace-packages=true\n' >> .npmrc
 RUN pnpm --filter @repo/integration --prod deploy /deploy
 
-FROM node:22-alpine AS runner
+FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /deploy .
-EXPOSE 3003
 CMD ["node", "dist/src/main"]
