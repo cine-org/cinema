@@ -1,0 +1,106 @@
+name: Deploy
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: false
+        description: Release tag, e.g. v0.3.0. Leave empty to deploy latest GitHub Release.
+
+env:
+  REGISTRY: ghcr.io
+  OWNER_NAME: ${{ github.repository_owner }}
+  REPO_NAME: ${{ github.event.repository.name }}
+  DEPLOY_ROOT: /opt/cinema
+  ENV_DIR: /etc/cinema/env
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Resolve release tag
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          if [[ -n "$INPUT_TAG" ]]; then
+            TAG="$INPUT_TAG"
+          else
+            TAG="$(gh release list \
+              --repo "${{ github.repository }}" \
+              --limit 1 \
+              --json tagName \
+              --jq '.[0].tagName')"
+          fi
+
+          if [[ -z "$TAG" ]]; then
+            echo "No GitHub Release tag found" >&2
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Download release artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          mkdir -p .deploy
+          gh release download "$TAG" \
+            --repo "${{ github.repository }}" \
+            --pattern release-manifest.yml \
+            --pattern deploy-artifact.tar.gz \
+            --dir .deploy
+          test -f .deploy/release-manifest.yml
+          test -f .deploy/deploy-artifact.tar.gz
+          cp .deploy/deploy-artifact.tar.gz deploy-artifact.tar.gz
+
+      - name: Upload deploy artifact
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          source: deploy-artifact.tar.gz
+          target: /tmp/cinema-deploy/${{ steps.release.outputs.tag }}
+
+      - name: Deploy via artifact
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          command_timeout: 30m
+          script: |
+            export GHCR_USER="${{ secrets.GHCR_USER || vars.GHCR_USER }}"
+            export GHCR_TOKEN="${{ secrets.GHCR_TOKEN }}"
+            export REGISTRY="${{ env.REGISTRY }}"
+            export OWNER_NAME="${{ env.OWNER_NAME }}"
+            export REPO_NAME="${{ env.REPO_NAME }}"
+            export DEPLOY_ROOT="${{ env.DEPLOY_ROOT }}"
+            export APP_DIR="${{ env.DEPLOY_ROOT }}/current"
+            export ENV_DIR="${{ env.ENV_DIR }}"
+
+            RELEASE_ID="${{ steps.release.outputs.tag }}"
+            RELEASE_DIR="$DEPLOY_ROOT/releases/$RELEASE_ID"
+            ARTIFACT_PATH="/tmp/cinema-deploy/$RELEASE_ID/deploy-artifact.tar.gz"
+
+            rm -rf "$RELEASE_DIR"
+            mkdir -p "$RELEASE_DIR"
+            tar -xzf "$ARTIFACT_PATH" -C "$RELEASE_DIR"
+            ln -sfnT "$RELEASE_DIR" "$DEPLOY_ROOT/current"
+
+            bash "$APP_DIR/infrastructure/scripts/deploy.sh" \
+              production \
+              --manifest "$APP_DIR/release-manifest.yml" \
+              all
