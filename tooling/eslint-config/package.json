@@ -1,0 +1,29 @@
+{
+  "name": "@repo/eslint-config",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./base": "./dist/base.js",
+    "./node": "./dist/node.js",
+    "./react": "./dist/react.js",
+    "./js": "./dist/js.js",
+    "./tooling": "./dist/tooling.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "eslint": ">=9.0.0 <10"
+  },
+  "dependencies": {
+    "@eslint/js": "^9.39.4",
+    "@repo/typescript-config": "workspace:*",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.5.0",
+    "typescript-eslint": "^8.58.2"
+  }
+}
