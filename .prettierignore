@@ -1,0 +1,43 @@
+# Node
+node_modules
+
+# Build output
+dist
+build
+
+# Coverage / reports
+coverage
+test-reports
+playwright-report
+
+# Generated
+generated
+node_modules/.prisma
+
+# Logs
+*.log
+
+# IDE
+.idea
+.vscode
+
+# OS
+.DS_Store
+
+# Cache
+.eslintcache
+.stylelintcache
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Misc
+.expo
