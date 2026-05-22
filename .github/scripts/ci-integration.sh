@@ -8,12 +8,8 @@ source "$SCRIPT_DIR/ci-prepare.sh"
 ci_load_test_env
 ci_prepare_workspace
 
-if [[ -d packages/database ]]; then
-  echo "Apply test database migrations..."
-  pnpm db:test:deploy
-else
-  echo "Skip test database migrations; packages/database is not present yet."
-fi
+echo "Apply test database migrations..."
+pnpm db:test:deploy
 
 echo "Integration test..."
 pnpm test:int

@@ -14,8 +14,8 @@ pnpm lint
 echo "Typecheck..."
 pnpm typecheck
 
-echo "Build..."
-pnpm build
-
 echo "Unit test..."
 pnpm test
+
+echo "Coverage..."
+pnpm test:cov
