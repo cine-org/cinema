@@ -2,16 +2,17 @@
   "name": "@repo/web-user",
   "version": "0.0.0",
   "description": "",
+  "private": true,
   "license": "ISC",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "dotenv -e ../../.env -e .env -- vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
-    "preview": "vite preview",
+    "preview": "dotenv -e ../../.env -e .env -- vite preview",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
-    "test:cov": "vitest run --coverage"
+    "test:cov": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
     "clsx": "^2.1.1",
