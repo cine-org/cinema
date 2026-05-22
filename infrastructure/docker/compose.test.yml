@@ -1,0 +1,81 @@
+name: cinema-test
+
+volumes:
+  postgres_test_data:
+    name: cinema-test-postgres-data
+  redis_test_data:
+    name: cinema-test-redis-data
+
+networks:
+  cinema_test:
+    name: cinema-test-net
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_TEST_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_TEST_DB:-cinema_test}
+    command:
+      - postgres
+      - -c
+      - max_connections=${POSTGRES_TEST_MAX_CONNECTIONS:-50}
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${POSTGRES_TEST_USER:-postgres} -d ${POSTGRES_TEST_DB:-cinema_test}',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - '${POSTGRES_TEST_PORT:-5433}:5432'
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    networks:
+      - cinema_test
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+  redis:
+    image: redis:7-alpine
+    environment:
+      REDIS_TEST_PASSWORD: ${REDIS_TEST_PASSWORD:-redis}
+    command:
+      - sh
+      - -c
+      - |
+        if [ -n "$$REDIS_TEST_PASSWORD" ]; then
+          exec redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass "$$REDIS_TEST_PASSWORD"
+        fi
+        exec redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'if [ -n "$$REDIS_TEST_PASSWORD" ]; then redis-cli -a "$$REDIS_TEST_PASSWORD" ping; else redis-cli ping; fi',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - '${REDIS_TEST_PORT:-6380}:6379'
+    volumes:
+      - redis_test_data:/data
+    networks:
+      - cinema_test
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
