@@ -9,21 +9,28 @@
   ],
   "scripts": {
     "build": "nest build",
-    "dev": "nest start --watch",
+    "dev": "cross-env NODE_ENV=development dotenv -e ../../.env -e .env -- nest start --watch",
+    "preview": "cross-env NODE_ENV=production dotenv -e ../../.env -e .env -- nest start",
+    "debug": "cross-env NODE_ENV=development dotenv -e ../../.env -e .env -- nest start --debug --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm test:unit",
+    "test:unit": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --rootDir . --testRegex '.spec.ts$' --testPathPatterns test/ --passWithNoTests",
+    "test:int": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --rootDir . --testRegex '.int-spec.ts$' --testPathPatterns test/ --passWithNoTests",
+    "test:e2e": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --rootDir . --testRegex '.e2e-spec.ts$' --testPathPatterns test/ --passWithNoTests",
+    "test:cov": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --rootDir . --testRegex '.spec.ts$' --testPathPatterns test/ --coverage --passWithNoTests",
+    "test:watch": "jest --watch",
     "start": "nest start",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/src/main",
-    "typecheck": "tsc --noEmit",
-    "test": "jest --passWithNoTests",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage"
+    "start:prod": "node dist/src/main"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/swagger": "^11.4.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@repo/jest-config": "workspace:*",
@@ -38,6 +45,7 @@
     "jest": "^30.0.0",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
+    "swagger-ui-express": "^5.0.1",
     "ts-jest": "^29.3.0"
   }
 }

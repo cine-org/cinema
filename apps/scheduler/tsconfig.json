@@ -6,7 +6,9 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": ".",
-    "paths": { "@/*": ["./src/*"] },
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "incremental": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
