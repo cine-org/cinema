@@ -1,4 +1,4 @@
-# Staging overlay — image injected via override.yml at deploy time
+# Staging overlay — image injected via compose.override.yml at deploy time
 
 include:
   - ./infra/nginx.yml

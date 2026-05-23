@@ -132,7 +132,7 @@ jobs:
         run: bash .github/scripts/write-release-manifest.sh "$TAG" release-manifest.yml
 
       - name: Pack deploy artifact
-        run: bash .github/scripts/pack-deploy-artifact.sh deploy-artifact.tar.gz release-manifest.yml
+        run: bash .github/scripts/pack-deploy-artifact.sh production deploy-artifact.tar.gz release-manifest.yml
 
       - name: Create release
         env:

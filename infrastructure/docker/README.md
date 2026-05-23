@@ -67,4 +67,4 @@ infrastructure/nginx/.env.example
 
 ## Deploy
 
-Do not run production compose directly on the VPS. Deploy uses the uploaded artifact plus `deploy.sh`, which generates `infrastructure/docker/override.yml` with image names from a tag or release manifest.
+Do not run production compose directly on the VPS. Deploy uses the uploaded artifact plus the environment deploy script, which generates `infrastructure/docker/compose.override.yml` with image names from `latest` on staging or the release manifest on production.

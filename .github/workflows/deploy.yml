@@ -100,7 +100,6 @@ jobs:
             tar -xzf "$ARTIFACT_PATH" -C "$RELEASE_DIR"
             ln -sfnT "$RELEASE_DIR" "$DEPLOY_ROOT/current"
 
-            bash "$APP_DIR/infrastructure/scripts/deploy.sh" \
-              production \
+            bash "$APP_DIR/infrastructure/scripts/deploy-production.sh" \
               --manifest "$APP_DIR/release-manifest.yml" \
               all
