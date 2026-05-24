@@ -78,7 +78,7 @@ jobs:
 
           infra_apps=""
 
-          if echo "$changed_files" | grep -Eq '^(infrastructure/nginx/|infrastructure/docker/infra/nginx\.yml|infrastructure/scripts/deploy\.sh)'; then
+          if echo "$changed_files" | grep -Eq '^(infrastructure/nginx/|infrastructure/docker/infra/nginx\.yml|infrastructure/scripts/deploy-staging\.sh)'; then
             infra_apps="api web-user web-admin nginx"
           fi
 
@@ -136,7 +136,7 @@ jobs:
         id: artifact
         run: |
           RELEASE_ID="sha-$(git rev-parse --short HEAD)"
-          bash .github/scripts/pack-deploy-artifact.sh deploy-artifact.tar.gz
+          bash .github/scripts/pack-deploy-artifact.sh staging deploy-artifact.tar.gz
           echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
 
       - name: Upload deploy artifact
@@ -174,7 +174,5 @@ jobs:
             tar -xzf "$ARTIFACT_PATH" -C "$RELEASE_DIR"
             ln -sfnT "$RELEASE_DIR" "$DEPLOY_ROOT/current"
 
-            bash "$APP_DIR/infrastructure/scripts/deploy.sh" \
-              staging \
-              --tag latest \
+            bash "$APP_DIR/infrastructure/scripts/deploy-staging.sh" \
               ${{ needs.detect.outputs.deploy_apps }}

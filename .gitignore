@@ -32,6 +32,7 @@ generated/
 # docker
 docker-data/
 *.pid
+compose.override.yml
 
 # misc
 .tmp/

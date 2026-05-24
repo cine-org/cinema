@@ -1,4 +1,4 @@
-# Production overlay — env only; image injected via override.yml at deploy time
+# Production overlay — env only; image injected via compose.override.yml at deploy time
 
 include:
   - ./infra/nginx.yml
