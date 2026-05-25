@@ -1,0 +1,13 @@
+services:
+  migrator:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cinema
+    restart: 'no'
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'

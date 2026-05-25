@@ -1,0 +1,60 @@
+# dependencies
+/node_modules
+
+# build
+/dist
+/build
+*.tsbuildinfo
+
+# logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# test
+/coverage
+/.nyc_output
+
+# cache
+.npm
+.pnpm-store
+.yarn
+.nest
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea
+.project
+.classpath
+.settings/
+
+# dotenv
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# temp
+.temp
+.tmp
+
+# runtime
+pids
+*.pid
+*.pid.lock
+
+# diagnostic
+report.*.json
+
+# docker
+docker-data
+*.sqlite
+
+# prisma
+/generated/prisma

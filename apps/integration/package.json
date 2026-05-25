@@ -1,0 +1,43 @@
+{
+  "name": "@repo/integration",
+  "version": "0.0.0",
+  "description": "External gateway — payment webhooks, storage, email providers",
+  "license": "ISC",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "nest build",
+    "dev": "cross-env NODE_ENV=development dotenv -e ../../.env -e .env -- nest start --watch",
+    "preview": "cross-env NODE_ENV=production dotenv -e ../../.env -e .env -- nest start",
+    "debug": "cross-env NODE_ENV=development dotenv -e ../../.env -e .env -- nest start --debug --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm test:unit",
+    "test:unit": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --rootDir . --testRegex '.spec.ts$' --testPathPatterns test/ --passWithNoTests",
+    "test:int": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --rootDir . --testRegex '.int-spec.ts$' --testPathPatterns test/ --passWithNoTests",
+    "test:e2e": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --rootDir . --testRegex '.e2e-spec.ts$' --testPathPatterns test/ --passWithNoTests",
+    "test:watch": "jest --watch",
+    "test:cov": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --rootDir . --testRegex '.spec.ts$' --testPathPatterns test/ --coverage --passWithNoTests"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/platform-express": "^11.0.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
+    "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "^11.0.1",
+    "@repo/jest-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.0.0",
+    "jest": "^30.0.0",
+    "source-map-support": "^0.5.21",
+    "ts-jest": "^29.3.0"
+  }
+}

@@ -1,0 +1,45 @@
+# Production overlay — env only; image injected via compose.override.yml at deploy time
+
+include:
+  - ./infra/nginx.yml
+
+services:
+  migrator:
+    env_file:
+      - ${ENV_DIR}/shared.env
+
+  api:
+    environment:
+      NODE_ENV: production
+    env_file:
+      - ${ENV_DIR}/shared.env
+      - ${ENV_DIR}/api.env
+
+  scheduler:
+    environment:
+      NODE_ENV: production
+    env_file:
+      - ${ENV_DIR}/shared.env
+      - ${ENV_DIR}/scheduler.env
+
+  worker:
+    environment:
+      NODE_ENV: production
+    env_file:
+      - ${ENV_DIR}/shared.env
+      - ${ENV_DIR}/worker.env
+
+  integration:
+    environment:
+      NODE_ENV: production
+    env_file:
+      - ${ENV_DIR}/shared.env
+      - ${ENV_DIR}/integration.env
+
+  web-user:
+    env_file:
+      - ${ENV_DIR}/web-user.env
+
+  web-admin:
+    env_file:
+      - ${ENV_DIR}/web-admin.env
