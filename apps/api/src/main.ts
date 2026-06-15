@@ -1,8 +1,8 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, RequestMethod, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { GlobalExceptionFilter } from '@/common/filters';
 import { ConfigService } from '@/config';
-import { setupApiRouting, setupSwagger } from '@/setup';
+import { setupSwagger } from '@/openapi';
 import { AppModule } from '@/app.module';
 
 async function bootstrap() {
@@ -16,13 +16,21 @@ async function bootstrap() {
     credentials: true,
   });
 
-  setupApiRouting({
-    app,
-    apiPrefix: appConfig.apiPrefix,
+  app.setGlobalPrefix(appConfig.apiPrefix, {
+    exclude: [
+      {
+        path: 'health',
+        method: RequestMethod.ALL,
+      },
+    ],
+  });
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
   });
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  setupSwagger(app);
+  setupSwagger(app, configService);
 
   await app.listen(appConfig.port);
 }

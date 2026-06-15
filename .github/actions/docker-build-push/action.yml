@@ -59,6 +59,16 @@ runs:
         images: ${{ inputs.registry }}/${{ inputs.owner }}/${{ inputs.repo }}/${{ inputs.app }}
         tags: ${{ inputs.tags }}
 
+    - uses: ./.github/actions/setup-node-pnpm
+      if: inputs.app == 'web-user' || inputs.app == 'web-admin'
+      with:
+        install: 'true'
+
+    - name: Generate OpenAPI client
+      if: inputs.app == 'web-user' || inputs.app == 'web-admin'
+      shell: bash
+      run: pnpm openapi:generate
+
     - uses: docker/build-push-action@v6
       with:
         context: .

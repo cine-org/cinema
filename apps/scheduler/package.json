@@ -10,7 +10,7 @@
   "scripts": {
     "build": "nest build",
     "dev": "cross-env NODE_ENV=development dotenv -e ../../.env -e .env -- nest start --watch",
-    "preview": "cross-env NODE_ENV=production dotenv -e ../../.env -e .env -- nest start",
+    "start": "cross-env NODE_ENV=production dotenv -e ../../.env -e .env -- nest start",
     "debug": "cross-env NODE_ENV=development dotenv -e ../../.env -e .env -- nest start --debug --watch",
     "typecheck": "tsc --noEmit",
     "test": "pnpm test:unit",

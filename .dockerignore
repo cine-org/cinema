@@ -1,10 +1,16 @@
 # 
 node_modules
 dist
+build
+.next
+.out
 .turbo
+.cache
 coverage
 .git
 .gitignore
+.pnpm-store
+*.tsbuildinfo
 
 # 
 .eslintcache
@@ -24,3 +30,13 @@ Thumbs.db
 
 # logs
 *.log
+logs
+
+# local runtime data
+docker-data
+*.pid
+compose.override.yml
+
+# temp
+.tmp
+temp

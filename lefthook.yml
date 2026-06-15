@@ -16,7 +16,7 @@ commit-msg:
       run: ./node_modules/.bin/commitlint --edit {1}
 
 pre-push:
-  parallel: true
+  parallel: false
   commands:
     typecheck:
       run: ./node_modules/.bin/turbo run typecheck --affected
