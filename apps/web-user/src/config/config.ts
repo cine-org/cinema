@@ -10,11 +10,14 @@ declare global {
 }
 
 const apiOrigin =
-  window.__APP_CONFIG__?.apiOrigin?.trim() ||
-  import.meta.env.VITE_API_ORIGIN?.trim() ||
-  window.location.origin;
+  (typeof window !== 'undefined' ? window.__APP_CONFIG__?.apiOrigin?.trim() : undefined) ||
+  process.env.NEXT_PUBLIC_API_ORIGIN?.trim() ||
+  (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+
 const apiPrefix =
-  window.__APP_CONFIG__?.apiPrefix?.trim() || import.meta.env.VITE_API_PREFIX?.trim() || '/api/v1';
+  (typeof window !== 'undefined' ? window.__APP_CONFIG__?.apiPrefix?.trim() : undefined) ||
+  process.env.NEXT_PUBLIC_API_PREFIX?.trim() ||
+  '/api/v1';
 
 type Config = {
   apiBaseUrl: string;

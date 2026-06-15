@@ -6,24 +6,27 @@
   "license": "ISC",
   "type": "module",
   "scripts": {
-    "dev": "dotenv -e ../../.env -e .env -- vite",
-    "build": "tsc -b && vite build",
-    "typecheck": "tsc -b --noEmit",
-    "preview": "dotenv -e ../../.env -e .env -- vite preview",
+    "dev": "dotenv -e ../../.env -e .env -- next dev -p 5174",
+    "build": "next build",
+    "typecheck": "tsc --noEmit",
+    "start": "next start",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
+    "@repo/api-client": "workspace:*",
+    "@repo/contracts": "workspace:*",
+    "@repo/utils": "workspace:*",
     "clsx": "^2.1.1",
+    "next": "^15.1.0",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-router-dom": "^7.14.1"
+    "react-dom": "^19.2.4"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@repo/vitest-config": "workspace:*",
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/postcss": "^4.2.2",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.5.2",
@@ -33,9 +36,9 @@
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^3.2.4",
     "jsdom": "^26.1.0",
+    "postcss": "^8.4.49",
     "tailwindcss": "^4.2.2",
     "typescript": "~6.0.2",
-    "vite": "^8.0.4",
     "vitest": "^3.2.4"
   }
 }
