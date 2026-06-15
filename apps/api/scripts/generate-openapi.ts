@@ -7,12 +7,9 @@ import { dirname, resolve } from 'node:path';
 const openApiJsonPath = resolve(process.cwd(), 'generated/openapi/schema.json');
 
 async function main() {
-  process.env.DATABASE_URL ||= 'postgresql://postgres:postgres@localhost:5432/cinema';
+  const { OpenApiModule, createOpenApiDocument } = await import('../src/openapi/index.js');
 
-  const { AppModule } = await import('../src/app.module.js');
-  const { createOpenApiDocument } = await import('../src/setup/index.js');
-
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create(OpenApiModule, {
     logger: false,
   });
 

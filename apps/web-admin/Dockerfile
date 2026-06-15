@@ -8,7 +8,7 @@ RUN corepack enable pnpm
 FROM base AS pruner
 WORKDIR /repo
 COPY . .
-RUN pnpm dlx turbo prune @repo/web-admin --docker
+RUN pnpm dlx turbo prune @repo/web-admin --docker --use-gitignore=false
 
 FROM base AS deps
 WORKDIR /repo

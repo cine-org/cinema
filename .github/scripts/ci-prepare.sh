@@ -26,5 +26,5 @@ ci_prepare_workspace() {
   pnpm --filter @repo/database build
 
   echo "Generate API client..."
-  pnpm --filter @repo/api-client generate
+  pnpm openapi:generate
 }
