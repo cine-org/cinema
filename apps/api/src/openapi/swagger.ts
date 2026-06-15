@@ -1,10 +1,9 @@
 import { INestApplication } from '@nestjs/common';
 import { SwaggerModule } from '@nestjs/swagger';
-import { ConfigService } from '@/config';
+import type { ConfigService } from '@/config';
 import { createOpenApiDocument } from './openapi-document';
 
-export function setupSwagger(app: INestApplication) {
-  const configService = app.get(ConfigService);
+export function setupSwagger(app: INestApplication, configService: ConfigService) {
   if (configService.isProduction) return;
 
   const { app: appConfig } = configService;
