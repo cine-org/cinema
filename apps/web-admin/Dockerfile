@@ -24,12 +24,24 @@ ENV TURBO_TOKEN=$TURBO_TOKEN
 ENV TURBO_TEAM=$TURBO_TEAM
 ENV NODE_ENV=production
 COPY --from=pruner /repo/out/full/ .
+
+ARG NEXT_PUBLIC_API_PREFIX
+ARG NEXT_PUBLIC_API_ORIGIN
+ENV NEXT_PUBLIC_API_PREFIX=$NEXT_PUBLIC_API_PREFIX
+ENV NEXT_PUBLIC_API_ORIGIN=$NEXT_PUBLIC_API_ORIGIN
+
 RUN --mount=type=cache,id=turbo-web-admin,target=/repo/.turbo \
     pnpm exec turbo run build --filter=@repo/web-admin --cache-dir=.turbo
 
-FROM nginx:alpine AS runner
-COPY --from=builder /repo/apps/web-admin/dist /usr/share/nginx/html
-COPY --from=builder /repo/apps/web-admin/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=builder /repo/apps/web-admin/scripts/write-runtime-config.sh /docker-entrypoint.d/40-write-runtime-config.sh
-RUN chmod +x /docker-entrypoint.d/40-write-runtime-config.sh
+FROM base AS runner
+WORKDIR /app
+ENV NODE_ENV=production
+ENV PORT=80
+
+COPY --from=builder /repo/apps/web-admin/public ./apps/web-admin/public
+COPY --from=builder /repo/apps/web-admin/.next/standalone ./
+COPY --from=builder /repo/apps/web-admin/.next/static ./apps/web-admin/.next/static
+
 EXPOSE 80
+
+CMD ["node", "apps/web-admin/server.js"]
