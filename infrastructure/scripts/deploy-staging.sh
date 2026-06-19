@@ -14,7 +14,7 @@ DEPLOY_ROOT="${DEPLOY_ROOT:-/opt/cinema}"
 APP_DIR="${APP_DIR:-${DEPLOY_ROOT}/current}"
 ENV_DIR="${ENV_DIR:-/etc/cinema/env}"
 DEPLOY_ENV=staging
-IMAGE_TAG=latest
+IMAGE_TAG="${IMAGE_TAG:-latest}"
 COMPOSE_OVERLAY=infrastructure/docker/compose.staging.yml
 
 image_for_service() {

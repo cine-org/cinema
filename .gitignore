@@ -27,7 +27,6 @@ secrets/
 
 # typescript
 *.tsbuildinfo
-generated/
 
 # docker
 docker-data/

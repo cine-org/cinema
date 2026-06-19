@@ -19,7 +19,8 @@
     "test:e2e": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --rootDir . --testRegex '.e2e-spec.ts$' --testPathPatterns test/ --passWithNoTests",
     "test:cov": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --rootDir . --testRegex '.spec.ts$' --testPathPatterns test/ --coverage --passWithNoTests",
     "test:watch": "jest --watch",
-    "openapi:generate": "nest build && dotenv -e ../../.env -e .env -- node dist/scripts/generate-openapi.js"
+    "generate": "nest build && dotenv -e ../../.env -e .env -- node dist/scripts/generate-openapi.js",
+    "openapi:generate": "pnpm generate"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

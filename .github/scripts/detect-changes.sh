@@ -42,6 +42,7 @@ BASE_REF="$(resolve_base_ref "$BASE_REF")"
 
 VALID_APPS=("api" "scheduler" "worker" "integration" "web-user" "web-admin")
 BACKEND_APPS=("api" "scheduler" "worker" "integration")
+ALL_IMAGES=("api" "scheduler" "worker" "integration" "web-user" "web-admin" "migrator")
 
 echo "==> Detecting changes since $BASE_REF using Turborepo..."
 
@@ -54,9 +55,77 @@ echo "$CHANGED_PACKAGES"
 
 changed=()
 
+contains_changed() {
+  local image="$1"
+  local existing
+
+  for existing in "${changed[@]}"; do
+    [[ "$existing" == "$image" ]] && return 0
+  done
+
+  return 1
+}
+
+add_image() {
+  local image="$1"
+
+  contains_changed "$image" || changed+=("$image")
+}
+
+add_all_images() {
+  local image
+
+  for image in "${ALL_IMAGES[@]}"; do
+    add_image "$image"
+  done
+}
+
+add_images_for_file() {
+  local file="$1"
+
+  case "$file" in
+    .dockerignore | package.json | pnpm-lock.yaml | pnpm-workspace.yaml | turbo.json | .github/actions/docker-build-push/action.yml)
+      add_all_images
+      ;;
+    apps/api/Dockerfile)
+      add_image api
+      ;;
+    apps/scheduler/Dockerfile)
+      add_image scheduler
+      ;;
+    apps/worker/Dockerfile)
+      add_image worker
+      ;;
+    apps/integration/Dockerfile)
+      add_image integration
+      ;;
+    apps/web-user/Dockerfile)
+      add_image web-user
+      ;;
+    apps/web-admin/Dockerfile)
+      add_image web-admin
+      ;;
+    packages/database/migrator/Dockerfile)
+      add_image migrator
+      ;;
+    apps/api/generated/openapi/schema.json)
+      add_image web-user
+      add_image web-admin
+      ;;
+    infrastructure/docker/compose.yml | infrastructure/docker/compose.staging.yml | infrastructure/docker/services/* | infrastructure/docker/infra/*)
+      add_all_images
+      ;;
+    infrastructure/nginx/* | infrastructure/scripts/deploy-staging.sh)
+      add_image api
+      add_image web-user
+      add_image web-admin
+      ;;
+  esac
+}
+
 for app in "${VALID_APPS[@]}"; do
   if echo "$CHANGED_PACKAGES" | grep -q "^@repo/${app}$"; then
-    changed+=("\"$app\"")
+    add_image "$app"
   fi
 done
 
@@ -71,13 +140,22 @@ done
 if [[ "$backend_changed" == "true" ]] ||
   echo "$CHANGED_PACKAGES" | grep -q "^@repo/database$" ||
   echo "$CHANGED_FILES" | grep -Eq '^(packages/database/|infrastructure/docker/services/migrator\.yml|packages/database/migrator/)'; then
-  changed+=("\"migrator\"")
+  add_image migrator
 fi
+
+while IFS= read -r file; do
+  [[ -n "$file" ]] && add_images_for_file "$file"
+done <<< "$CHANGED_FILES"
 
 if [[ ${#changed[@]} -eq 0 ]]; then
   result="[]"
 else
-  result="[$(IFS=,; echo "${changed[*]}")]"
+  result="["
+  for image in "${changed[@]}"; do
+    [[ "$result" == "[" ]] || result+=","
+    result+="\"$image\""
+  done
+  result+="]"
 fi
 
 echo "==> Changed release images: $result"

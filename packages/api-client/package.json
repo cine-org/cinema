@@ -7,10 +7,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc -b",
+    "build": "pnpm generate && tsc -b",
     "dev": "tsc -b --watch",
     "generate": "openapi-typescript ../../apps/api/generated/openapi/schema.json -o src/generated/openapi/types.ts",
-    "typecheck": "tsc -b --noEmit",
+    "typecheck": "pnpm generate && tsc -b --noEmit",
     "test": "pnpm test:unit",
     "test:unit": "vitest run --passWithNoTests \"**/*.spec.ts\"",
     "test:watch": "vitest",
