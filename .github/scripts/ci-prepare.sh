@@ -15,16 +15,17 @@ ci_prepare_workspace() {
   echo "Install deps..."
   pnpm install --frozen-lockfile
 
-  echo "Build tooling..."
-  pnpm --filter @repo/eslint-config build
-  pnpm --filter @repo/jest-config build
-  pnpm --filter @repo/vitest-config build
+  echo "Generate OpenAPI schema..."
+  pnpm openapi:generate:schema
 
-  echo "Build shared runtime packages..."
-  pnpm --filter @repo/contracts build
-  pnpm --filter @repo/shared build
-  pnpm --filter @repo/database build
+  echo "Check OpenAPI schema is up to date..."
+  if [[ -n "$(git status --porcelain -- apps/api/generated/openapi/schema.json)" ]]; then
+    git status --short -- apps/api/generated/openapi/schema.json
+    git diff -- apps/api/generated/openapi/schema.json
+    echo "OpenAPI schema is stale. Run pnpm openapi:generate:schema and commit apps/api/generated/openapi/schema.json." >&2
+    exit 1
+  fi
 
   echo "Generate API client..."
-  pnpm openapi:generate
+  pnpm openapi:generate:types
 }

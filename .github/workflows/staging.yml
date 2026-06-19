@@ -34,11 +34,16 @@ jobs:
     outputs:
       images: ${{ steps.bootstrap.outputs.images || steps.detect.outputs.apps }}
       deploy_apps: ${{ steps.bootstrap.outputs.deploy_apps || steps.deploy.outputs.apps }}
+      image_tag: ${{ steps.image-tag.outputs.value }}
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Resolve image tag
+        id: image-tag
+        run: echo "value=sha-$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
       - uses: ./.github/actions/setup-node-pnpm
         if: github.event_name != 'workflow_dispatch' || inputs.deploy_mode != 'all'
@@ -117,7 +122,7 @@ jobs:
           registry-username: ${{ github.actor }}
           registry-password: ${{ secrets.GITHUB_TOKEN }}
           tags: |
-            type=sha,prefix=sha-,format=short
+            type=raw,value=${{ needs.detect.outputs.image_tag }}
             type=raw,value=latest
           turbo-token: ${{ env.TURBO_TOKEN }}
           turbo-team: ${{ env.TURBO_TEAM }}
@@ -135,7 +140,7 @@ jobs:
       - name: Pack deploy artifact
         id: artifact
         run: |
-          RELEASE_ID="sha-$(git rev-parse --short HEAD)"
+          RELEASE_ID="${{ needs.detect.outputs.image_tag }}"
           bash .github/scripts/pack-deploy-artifact.sh staging deploy-artifact.tar.gz
           echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
 
@@ -164,6 +169,7 @@ jobs:
             export DEPLOY_ROOT="${{ env.DEPLOY_ROOT }}"
             export APP_DIR="${{ env.DEPLOY_ROOT }}/current"
             export ENV_DIR="${{ env.ENV_DIR }}"
+            export IMAGE_TAG="${{ needs.detect.outputs.image_tag }}"
 
             RELEASE_ID="${{ steps.artifact.outputs.release_id }}"
             RELEASE_DIR="$DEPLOY_ROOT/releases/$RELEASE_ID"

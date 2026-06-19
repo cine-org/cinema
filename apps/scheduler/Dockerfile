@@ -15,7 +15,7 @@ WORKDIR /repo
 COPY --from=pruner /repo/out/json/ .
 COPY --from=pruner /repo/out/pnpm-lock.yaml ./pnpm-lock.yaml
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --no-frozen-lockfile --ignore-scripts
+    pnpm install --frozen-lockfile --ignore-scripts
 
 FROM deps AS builder
 ARG TURBO_TOKEN

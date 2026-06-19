@@ -16,16 +16,31 @@
       "cache": false,
       "persistent": true
     },
-    "lint": {
-      "dependsOn": ["@repo/eslint-config#build"],
-      "outputs": [".eslintcache"]
-    },
-    "lint:fix": {
-      "cache": false
-    },
     "generate": {
       "dependsOn": ["^build"],
       "outputs": ["generated/**", "src/generated/**"]
+    },
+    "@repo/api-client#generate": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/api/generated/openapi/schema.json"],
+      "outputs": ["src/generated/**"]
+    },
+    "@repo/api-client#build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/api/generated/openapi/schema.json"],
+      "outputs": ["dist/**", "src/generated/**"]
+    },
+    "@repo/api-client#typecheck": {
+      "dependsOn": ["build", "^build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/api/generated/openapi/schema.json"],
+      "outputs": []
+    },
+    "@repo/web-user#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "@repo/web-admin#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"]
     },
     "typecheck": {
       "dependsOn": ["build", "^build"],

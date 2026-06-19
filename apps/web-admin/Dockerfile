@@ -8,14 +8,14 @@ RUN corepack enable pnpm
 FROM base AS pruner
 WORKDIR /repo
 COPY . .
-RUN pnpm dlx turbo prune @repo/web-admin --docker --use-gitignore=false
+RUN pnpm dlx turbo prune @repo/web-admin --docker
 
 FROM base AS deps
 WORKDIR /repo
 COPY --from=pruner /repo/out/json/ .
 COPY --from=pruner /repo/out/pnpm-lock.yaml ./pnpm-lock.yaml
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
-    pnpm install --no-frozen-lockfile --ignore-scripts
+    pnpm install --frozen-lockfile --ignore-scripts
 
 FROM deps AS builder
 ARG TURBO_TOKEN
@@ -24,6 +24,7 @@ ENV TURBO_TOKEN=$TURBO_TOKEN
 ENV TURBO_TEAM=$TURBO_TEAM
 ENV NODE_ENV=production
 COPY --from=pruner /repo/out/full/ .
+COPY apps/api/generated/openapi/schema.json ./apps/api/generated/openapi/schema.json
 
 ARG NEXT_PUBLIC_API_PREFIX
 ARG NEXT_PUBLIC_API_ORIGIN

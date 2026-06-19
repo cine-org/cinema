@@ -12,6 +12,10 @@ coverage
 .pnpm-store
 *.tsbuildinfo
 
+# generated code
+packages/api-client/src/generated
+packages/database/src/generated
+
 # 
 .eslintcache
 
