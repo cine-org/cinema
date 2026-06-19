@@ -31,49 +31,6 @@ jobs:
         name: Detect CI impact
         run: bash .github/scripts/ci-filter.sh "${{ github.event.pull_request.base.sha }}"
 
-  docker-filter:
-    name: Detect Docker Images
-    runs-on: ubuntu-latest
-    outputs:
-      images: ${{ steps.detect.outputs.apps }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: ./.github/actions/setup-node-pnpm
-        with:
-          install: 'true'
-
-      - id: detect
-        name: Detect Docker image impact
-        run: bash .github/scripts/detect-changes.sh "${{ github.event.pull_request.base.sha }}"
-
-  docker:
-    name: Docker Build - ${{ matrix.app }}
-    runs-on: ubuntu-latest
-    needs: docker-filter
-    if: needs.docker-filter.outputs.images != '[]'
-
-    strategy:
-      fail-fast: false
-      matrix:
-        app: ${{ fromJson(needs.docker-filter.outputs.images) }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: ./.github/actions/docker-build-push
-        with:
-          app: ${{ matrix.app }}
-          registry: ghcr.io
-          owner: ${{ github.repository_owner }}
-          repo: ${{ github.event.repository.name }}
-          tags: type=raw,value=ci-${{ github.sha }}
-          push: 'false'
-          turbo-token: ${{ env.TURBO_TOKEN }}
-          turbo-team: ${{ env.TURBO_TEAM }}
-
   quality:
     name: Lint / Typecheck / Unit
     runs-on: ubuntu-latest
