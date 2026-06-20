@@ -17,9 +17,7 @@ export function nodePreset(dirs: string[] = []): Linter.Config[] {
           ...globals.jest,
         },
         parserOptions: {
-          projectService: {
-            allowDefaultProject: ['packages/*/prisma/*.ts', 'packages/*/prisma/seeds/*.ts'],
-          },
+          projectService: true,
         },
       },
       rules: {
