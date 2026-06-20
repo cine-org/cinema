@@ -33,6 +33,7 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=80
+ENV HOSTNAME="0.0.0.0"
 
 COPY --from=builder /repo/apps/web-admin/public ./apps/web-admin/public
 COPY --from=builder /repo/apps/web-admin/.next/standalone ./
