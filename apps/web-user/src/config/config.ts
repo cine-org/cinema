@@ -11,12 +11,10 @@ declare global {
 
 const apiOrigin =
   (typeof window !== 'undefined' ? window.__APP_CONFIG__?.apiOrigin?.trim() : undefined) ||
-  process.env.NEXT_PUBLIC_API_ORIGIN?.trim() ||
   (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
 
 const apiPrefix =
   (typeof window !== 'undefined' ? window.__APP_CONFIG__?.apiPrefix?.trim() : undefined) ||
-  process.env.NEXT_PUBLIC_API_PREFIX?.trim() ||
   '/api/v1';
 
 type Config = {

@@ -26,11 +26,6 @@ ENV NODE_ENV=production
 COPY --from=pruner /repo/out/full/ .
 COPY apps/api/generated/openapi/schema.json ./apps/api/generated/openapi/schema.json
 
-ARG NEXT_PUBLIC_API_PREFIX
-ARG NEXT_PUBLIC_API_ORIGIN
-ENV NEXT_PUBLIC_API_PREFIX=$NEXT_PUBLIC_API_PREFIX
-ENV NEXT_PUBLIC_API_ORIGIN=$NEXT_PUBLIC_API_ORIGIN
-
 RUN --mount=type=cache,id=turbo-web-admin,target=/repo/.turbo \
     pnpm exec turbo run build --filter=@repo/web-admin --cache-dir=.turbo
 
@@ -38,6 +33,7 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=80
+ENV HOSTNAME="0.0.0.0"
 
 COPY --from=builder /repo/apps/web-admin/public ./apps/web-admin/public
 COPY --from=builder /repo/apps/web-admin/.next/standalone ./
