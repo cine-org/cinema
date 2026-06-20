@@ -33,4 +33,4 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /deploy .
 EXPOSE 3000
-CMD ["node", "dist/src/main"]
+CMD ["node", "dist/main"]

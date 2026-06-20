@@ -4,16 +4,22 @@
   "description": "",
   "private": true,
   "license": "ISC",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "build": "tsc -b",
-    "dev": "tsc -b --watch",
-    "typecheck": "tsc -b --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "typecheck": "tsc -p tsconfig.json",
     "test": "pnpm test:unit",
-    "test:unit": "vitest run --passWithNoTests \"**/*.spec.ts\"",
+    "test:unit": "vitest run --passWithNoTests",
     "test:watch": "vitest",
-    "test:cov": "vitest run --coverage --passWithNoTests \"**/*.spec.ts\""
+    "test:cov": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {},
   "devDependencies": {

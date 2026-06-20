@@ -4,17 +4,23 @@
   "description": "",
   "private": true,
   "license": "ISC",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "build": "pnpm generate && tsc -b",
-    "dev": "tsc -b --watch",
+    "build": "pnpm generate && tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
     "generate": "openapi-typescript ../../apps/api/generated/openapi/schema.json -o src/generated/openapi/types.ts",
-    "typecheck": "pnpm generate && tsc -b --noEmit",
+    "typecheck": "pnpm generate && tsc -p tsconfig.json",
     "test": "pnpm test:unit",
-    "test:unit": "vitest run --passWithNoTests \"**/*.spec.ts\"",
+    "test:unit": "vitest run --passWithNoTests",
     "test:watch": "vitest",
-    "test:cov": "vitest run --coverage --passWithNoTests \"**/*.spec.ts\""
+    "test:cov": "vitest run --coverage --passWithNoTests"
   },
   "dependencies": {
     "openapi-fetch": "^0.15.0"

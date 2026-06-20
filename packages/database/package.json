@@ -4,12 +4,18 @@
   "description": "",
   "private": true,
   "license": "ISC",
-  "main": "dist/index.js",
-  "types": "src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "build": "pnpm db:generate && tsc -b",
-    "dev": "tsc -b --watch",
-    "typecheck": "pnpm db:generate && tsc -b --noEmit",
+    "build": "pnpm db:generate && tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "typecheck": "pnpm db:generate && tsc -p tsconfig.json",
     "db:generate": "prisma generate",
     "db:migrate": "dotenv -e ../../.env -- prisma migrate dev",
     "db:deploy": "dotenv -e ../../.env -- prisma migrate deploy",
@@ -21,11 +27,11 @@
     "db:test:reset": "dotenv -e ../../.env.test -- prisma migrate reset --force",
     "db:test:seed": "dotenv -e ../../.env.test -- prisma db seed",
     "test": "pnpm test:unit",
-    "test:unit": "vitest run --passWithNoTests \"**/*.spec.ts\"",
+    "test:unit": "vitest run --passWithNoTests",
     "test:watch": "vitest",
-    "test:cov": "vitest run --coverage --passWithNoTests \"**/*.spec.ts\"",
-    "test:int": "dotenv -e ../../.env.test -- vitest run --passWithNoTests \"**/*.int-spec.ts\"",
-    "test:e2e": "dotenv -e ../../.env.test -- vitest run --passWithNoTests \"**/*.e2e-spec.ts\""
+    "test:cov": "vitest run --coverage --passWithNoTests",
+    "test:int": "dotenv -e ../../.env.test -- vitest run .int-spec.ts --passWithNoTests",
+    "test:e2e": "dotenv -e ../../.env.test -- vitest run .e2e-spec.ts --passWithNoTests"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
@@ -34,7 +40,6 @@
     "prisma": "^7.8.0"
   },
   "devDependencies": {
-    "@repo/jest-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "dotenv-cli": "^11.0.0",
     "tsx": "^4.21.0",
