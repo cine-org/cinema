@@ -1,44 +1,50 @@
 # Package Template
 
-Purpose: shared libraries under `packages/*`.
-
-## When To Use
-
-Use `packages/<name>` for reusable code that is not a backend business module.
-
-Examples:
-
-- generated clients
-- shared contracts
-- database access package
-- runtime utilities
-- logger/queue wrappers
-
-## Minimal Shape
+Purpose: reusable libraries under `packages/*`.
 
 ```text
 packages/<name>/
   package.json
   tsconfig.json
+  tsconfig.build.json
+  vitest.config.ts
   src/
     index.ts
+  test/
+    ...mirror src
 ```
 
-Common scripts:
+Package scripts:
 
 ```json
 {
-  "build": "tsc -b",
-  "typecheck": "tsc -b --noEmit",
-  "test": "vitest run --passWithNoTests"
+  "build": "tsc -p tsconfig.build.json",
+  "dev": "tsc -p tsconfig.build.json --watch",
+  "typecheck": "tsc -p tsconfig.json",
+  "test": "pnpm test:unit",
+  "test:unit": "vitest run --passWithNoTests"
 }
 ```
 
-## Rules
+Runtime metadata:
 
-- Export from `src/index.ts`.
-- Do not import from `apps/*` or `modules/*`.
-- If source imports generated files, put them under `src/generated`.
-- Keep generated files reproducible and gitignored.
+```json
+{
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  }
+}
+```
 
-Related: [Architecture](../architecture/architecture.md), [TypeScript](../tooling/tsconfig.md)
+Rules:
+
+- Export only through `src/index.ts`.
+- Consumers import the package root, never `src` or deep internal paths.
+- Packages do not import apps or business modules.
+- Generated dependencies live under `src/generated` and must be reproducible.
+- Run package tasks through root Turbo commands when dependency build order matters.

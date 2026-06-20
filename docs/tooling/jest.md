@@ -1,14 +1,8 @@
 # Jest
 
-Purpose: Jest is used mainly for NestJS apps/modules.
+Purpose: test Nest applications with Jest 29 and ts-jest 29.
 
-## Package
-
-```text
-tooling/jest-config -> @repo/jest-config
-```
-
-Use `nestConfig` in `jest.config.mjs`:
+Each Nest app uses:
 
 ```js
 import { nestConfig } from '@repo/jest-config';
@@ -16,17 +10,18 @@ import { nestConfig } from '@repo/jest-config';
 export default nestConfig();
 ```
 
-## Naming
+The shared config resolves only the app-local `@/*` alias. Workspace dependencies resolve through their package exports and must be built by Turbo first.
 
-- Unit: `*.spec.ts`
-- Integration: `*.int-spec.ts`
-- E2E: `*.e2e-spec.ts`
+Naming:
 
-## Commands
+- Unit: `test/**/*.spec.ts`
+- Integration: `test/**/*.int-spec.ts`
+- E2E: `test/**/*.e2e-spec.ts`
+
+Run tests through root Turbo scripts so dependency `dist` outputs exist:
 
 ```bash
 pnpm test
-pnpm test:unit
 pnpm test:int
 pnpm test:e2e
 pnpm test:cov

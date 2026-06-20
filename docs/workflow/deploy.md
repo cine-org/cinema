@@ -62,13 +62,12 @@ API_HOST=api.cine.io.vn
 ## Deploy Command Shape
 
 ```bash
-bash /opt/cinema/current/infrastructure/scripts/deploy.sh \
-  production \
+bash /opt/cinema/current/infrastructure/scripts/deploy-production.sh \
   --manifest /opt/cinema/current/release-manifest.yml \
   all
 ```
 
-`deploy.sh` generates a temporary compose override and runs `migrator` before backend/all deploys.
+`deploy-production.sh` reads exact images from the manifest. Shared runtime logic writes `compose.override.yml`, keeps it on the VPS for manual compose operations, and runs `migrator` before backend/all deploys.
 
 ## Secrets
 

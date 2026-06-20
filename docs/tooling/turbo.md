@@ -1,26 +1,23 @@
 # Turbo
 
-Purpose: task graph and caching.
+Purpose: the single workspace task graph used by root scripts, CI, and Docker builds.
 
-## Key Tasks
+Key tasks:
 
-- `build`: depends on `^build`, outputs `dist/**`.
-- `generate`: depends on `^build`, outputs `generated/**` and `src/generated/**`.
-- `typecheck`: depends on `build` and `^build`.
-- `test`, `test:unit`, `test:int`, `test:e2e`: depend on `^build`.
-- `dev`, `preview`, `lint:fix`, `clean`: not cached.
+- `build`: builds `^build` dependencies first and caches production outputs.
+- `generate`: builds dependencies before generating OpenAPI or Prisma artifacts.
+- `typecheck`: follows the configured build dependency graph.
+- `test*`: builds workspace dependencies before loading their package exports.
+- `dev`: persistent and uncached; filtered root scripts include package dependencies so library watchers run beside apps.
 
-`^build` means workspace dependencies build first.
-
-## Commands
+Examples:
 
 ```bash
-pnpm turbo run build
-pnpm turbo run typecheck --filter=@repo/api
-pnpm turbo run test --affected
-pnpm turbo run build --dry-run=json
+pnpm build
+pnpm typecheck
+pnpm test
+pnpm exec turbo run build --dry-run=json
+pnpm exec turbo run test --affected
 ```
 
-## Remote Cache
-
-CI can use `TURBO_TOKEN` and `TURBO_TEAM`. Do not rely on cache for correctness; scripts must work from a clean checkout.
+Do not bypass root/Turbo commands in CI or staging. Remote cache may improve speed, but every task must also work from a clean checkout.

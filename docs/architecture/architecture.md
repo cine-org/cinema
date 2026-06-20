@@ -19,8 +19,8 @@ docs/            short project references
 - `scheduler`: NestJS background scheduler.
 - `worker`: NestJS background worker.
 - `integration`: NestJS integration service.
-- `web-user`: React/Vite user app.
-- `web-admin`: React/Vite admin app.
+- `web-user`: Next.js user app.
+- `web-admin`: Next.js admin app.
 
 ## Packages
 
