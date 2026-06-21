@@ -1,6 +1,6 @@
 import {
-  PaginatedResponse as PaginatedResponseContract,
-  PaginationMeta as PaginationMetaContract,
+  PaginatedResponse as IPaginatedResponse,
+  PaginationMeta as IPaginationMeta,
 } from '@repo/contracts';
 
 export type PaginationMetaInput = {
@@ -9,7 +9,7 @@ export type PaginationMetaInput = {
   readonly total: number;
 };
 
-export class PaginationMeta implements PaginationMetaContract {
+export class PaginationMeta implements IPaginationMeta {
   readonly total: number;
   readonly page: number;
   readonly limit: number;
@@ -50,7 +50,7 @@ type PaginatedResponseProps<T> = {
   readonly message?: string;
 };
 
-export class PaginatedResponse<T> implements PaginatedResponseContract<T> {
+export class PaginatedResponse<T> implements IPaginatedResponse<T> {
   readonly success = true;
   readonly data: T[];
   readonly meta: PaginationMeta;

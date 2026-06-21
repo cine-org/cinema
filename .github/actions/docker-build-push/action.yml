@@ -41,6 +41,18 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Check Turbo remote cache credentials
+      shell: bash
+      env:
+        TURBO_TOKEN: ${{ inputs.turbo-token }}
+        TURBO_TEAM: ${{ inputs.turbo-team }}
+      run: |
+        if [[ -z "$TURBO_TOKEN" || -z "$TURBO_TEAM" ]]; then
+          echo "::warning::Turbo remote cache credentials are missing; Docker build will continue without remote cache."
+        else
+          echo "Turbo remote cache credentials are configured."
+        fi
+
     - name: Resolve Dockerfile
       id: dockerfile
       shell: bash

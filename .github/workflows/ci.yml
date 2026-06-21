@@ -14,7 +14,7 @@ on:
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ secrets.TURBO_TEAM || vars.TURBO_TEAM }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
 
 jobs:
   filter:
@@ -40,6 +40,14 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: ./.github/actions/setup-node-pnpm
+
+      - name: Check Turbo remote cache credentials
+        run: |
+          if [[ -z "$TURBO_TOKEN" || -z "$TURBO_TEAM" ]]; then
+            echo "::warning::Turbo remote cache credentials are missing; quality checks will continue without remote cache."
+          else
+            echo "Turbo remote cache credentials are configured."
+          fi
 
       - name: Create test env
         run: |

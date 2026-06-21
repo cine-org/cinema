@@ -1,11 +1,12 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
 import { COMMON_ERROR_CODE, type ErrorDetail } from '@repo/contracts';
 import { AppException } from '@repo/shared';
+import { getHttpStatusForErrorCode } from '@/common/errors';
+import { ErrorResponse } from '@/common/responses';
 import { Response } from 'express';
 import { ZodError } from 'zod';
-import { createErrorResponse } from '../responses';
 
-const DEFAULT_STATUS_ERROR_CODE: Record<number, string> = {
+const NEST_HTTP_STATUS_ERROR_CODE: Record<number, string> = {
   [HttpStatus.BAD_REQUEST]: COMMON_ERROR_CODE.BAD_REQUEST,
   [HttpStatus.UNAUTHORIZED]: COMMON_ERROR_CODE.UNAUTHORIZED,
   [HttpStatus.FORBIDDEN]: COMMON_ERROR_CODE.FORBIDDEN,
@@ -27,8 +28,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const requestId = this.getRequestId(response);
 
     if (exception instanceof AppException) {
-      return response.status(exception.status).json(
-        createErrorResponse({
+      return response.status(getHttpStatusForErrorCode(exception.code)).json(
+        ErrorResponse.of({
           message: exception.message,
           code: exception.code,
           errors: exception.details,
@@ -39,7 +40,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof ZodError) {
       return response.status(HttpStatus.BAD_REQUEST).json(
-        createErrorResponse({
+        ErrorResponse.of({
           message: 'Validation failed',
           code: COMMON_ERROR_CODE.VALIDATION,
           errors: this.mapZodDetails(exception),
@@ -55,7 +56,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     console.error(exception);
 
     return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(
-      createErrorResponse({
+      ErrorResponse.of({
         message: 'Internal server error',
         code: COMMON_ERROR_CODE.INTERNAL,
         requestId,
@@ -70,7 +71,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
     if (typeof exceptionResponse === 'string') {
       return response.status(status).json(
-        createErrorResponse({
+        ErrorResponse.of({
           message: exceptionResponse,
           code: fallbackCode,
           requestId,
@@ -85,7 +86,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         typeof exceptionResponse.code === 'string' ? exceptionResponse.code : fallbackCode;
 
       return response.status(status).json(
-        createErrorResponse({
+        ErrorResponse.of({
           message,
           code,
           errors,
@@ -95,7 +96,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     return response.status(status).json(
-      createErrorResponse({
+      ErrorResponse.of({
         message: 'Internal server error',
         code: fallbackCode,
         requestId,
@@ -144,7 +145,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   }
 
   private getDefaultCode(status: number) {
-    return DEFAULT_STATUS_ERROR_CODE[status] ?? COMMON_ERROR_CODE.INTERNAL;
+    return NEST_HTTP_STATUS_ERROR_CODE[status] ?? COMMON_ERROR_CODE.INTERNAL;
   }
 
   private getRequestId(response: Response) {
