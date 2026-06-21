@@ -1,4 +1,4 @@
-export { createErrorResponse, type ErrorResponseInput } from './error-response.factory';
+export { ErrorResponse, type ErrorResponseInput } from './error.response';
 export {
   PaginatedResponse,
   PaginationMeta,

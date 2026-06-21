@@ -1,4 +1,4 @@
-import type { SuccessResponse as SuccessResponseContract } from '@repo/contracts';
+import type { SuccessResponse as ISuccessResponse } from '@repo/contracts';
 
 /**
  * Factory input
@@ -19,7 +19,7 @@ type SuccessResponseProps<T> = {
 /**
  * Success response wrapper
  */
-export class SuccessResponse<T> implements SuccessResponseContract<T> {
+export class SuccessResponse<T> implements ISuccessResponse<T> {
   readonly success = true;
   readonly data: T;
   readonly message: string;
