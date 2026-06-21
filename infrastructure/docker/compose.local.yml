@@ -58,7 +58,7 @@ services:
     env_file:
       - ../../apps/web-user/.env
     ports:
-      - '5173:80'
+      - '4000:80'
 
   web-admin:
     build:
@@ -67,7 +67,7 @@ services:
     env_file:
       - ../../apps/web-admin/.env
     ports:
-      - '5174:80'
+      - '4001:80'
 
   postgres:
     image: postgres:16-alpine

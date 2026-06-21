@@ -7,8 +7,7 @@ import { dirname, resolve } from 'node:path';
 const openApiJsonPath = resolve(process.cwd(), 'generated/openapi/schema.json');
 
 async function main() {
-  const { OpenApiModule, createOpenApiDocument } = await import('../src/openapi/index.js');
-
+  const { OpenApiModule, createOpenApiDocument } = await import('../dist/openapi/index.js');
   const app = await NestFactory.create(OpenApiModule, {
     logger: false,
   });
@@ -25,7 +24,7 @@ async function main() {
   }
 }
 
-main().catch((error: unknown) => {
+main().catch((error) => {
   console.error(error);
   process.exit(1);
 });

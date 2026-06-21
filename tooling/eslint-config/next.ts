@@ -28,10 +28,16 @@ export function nextPreset(dirs: string[] = []): Linter.Config[] {
           projectService: true,
         },
       },
+      settings: {
+        next: {
+          rootDir: dirs.length ? dirs : ['.'],
+        },
+      },
       rules: {
         ...reactHooksFlat.rules,
         ...plugin.configs.recommended.rules,
         ...plugin.configs['core-web-vitals'].rules,
+        '@next/next/no-html-link-for-pages': 'off',
       },
     } as any,
   ];

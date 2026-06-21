@@ -1,38 +1,19 @@
 # ESLint
 
-Purpose: shared lint presets live in `@repo/eslint-config`.
+Purpose: shared flat-config presets in `@repo/eslint-config`.
 
-## Files
+Presets:
 
-```text
-tooling/eslint-config/
-  base.ts
-  node.ts
-  react.ts
-  js.ts
-  tooling.ts
-```
+- `basePreset`: common TypeScript and formatting rules.
+- `nodePreset`: Nest apps, modules, packages, Prisma scripts.
+- `nextPreset`: Next.js and React Hooks rules with monorepo app roots.
+- `javascriptPreset`: JavaScript configuration files.
+- `toolingPreset`: relaxed rules for configuration packages.
 
-## Presets
-
-- `basePreset`: common TS/JS rules.
-- `nodePreset`: Node/Nest apps, modules, packages.
-- `reactPreset`: React apps.
-- `javascriptPreset`: JS/MJS/CJS files.
-- `toolingPreset`: config packages under `tooling`.
-
-## Rules To Remember
-
-- `any` is warned.
-- unsafe/floating promise rules are enabled for typed projects.
-- Prettier formatting is integrated through ESLint config, but `prettier/prettier` may be disabled in selected layers.
-
-## Commands
+Typed linting uses TypeScript project service. Every TypeScript source, test, Prisma script, and config file should belong to a real `tsconfig.json`; avoid `allowDefaultProject` exceptions.
 
 ```bash
-pnpm --filter @repo/eslint-config build
+pnpm build:eslint
 pnpm lint
 pnpm lint:fix
 ```
-
-When adding a new typed project, add its directory to the right preset in root `eslint.config.mjs`.

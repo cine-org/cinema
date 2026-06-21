@@ -4,7 +4,7 @@
   "exports": {
     "./base.json": "./base.json",
     "./node.json": "./node.json",
-    "./react-app.json": "./react-app.json",
-    "./react-node.json": "./react-node.json"
+    "./nest.json": "./nest.json",
+    "./next.json": "./next.json"
   }
 }

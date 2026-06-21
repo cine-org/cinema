@@ -8,12 +8,18 @@ export function browserConfig(overrides: UserConfig = {}): UserConfig {
         globals: true,
         environment: 'jsdom',
         css: true,
+        include: [
+          'test/**/*.spec.{ts,tsx}',
+          'test/**/*.int-spec.{ts,tsx}',
+          'test/**/*.e2e-spec.{ts,tsx}',
+        ],
         coverage: {
           provider: 'v8',
           reporter: ['text', 'json', 'html'],
           exclude: [
             'node_modules/**',
             'dist/**',
+            '.next/**',
             'coverage/**',
             'public/**',
             'prisma/**',
@@ -34,6 +40,7 @@ export function nodeConfig(overrides: UserConfig = {}): UserConfig {
       test: {
         globals: true,
         environment: 'node',
+        include: ['test/**/*.spec.ts', 'test/**/*.int-spec.ts', 'test/**/*.e2e-spec.ts'],
         coverage: {
           provider: 'v8',
           reporter: ['text', 'json', 'html'],

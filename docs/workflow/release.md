@@ -61,7 +61,8 @@ Production deploy reads image names from this file.
 ```text
 infrastructure/docker/
 infrastructure/nginx/
-infrastructure/scripts/deploy.sh
+infrastructure/scripts/deploy-runtime.sh
+infrastructure/scripts/deploy-production.sh
 release-manifest.yml
 ```
 

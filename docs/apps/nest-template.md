@@ -1,57 +1,43 @@
 # Nest App Template
 
-Purpose: checklist for adding a deployable NestJS app.
-
-## Minimal Files
+Purpose: checklist for a deployable Nest application.
 
 ```text
 apps/<app>/
   package.json
-  tsconfig.json
   nest-cli.json
+  tsconfig.json
+  tsconfig.build.json
   jest.config.mjs
   Dockerfile
   src/
     main.ts
     app.module.ts
   test/
+    ...mirror src
 ```
 
-## Package Scripts
+Required conventions:
 
-Required shape:
+- Extend `@repo/typescript-config/nest.json` from `tsconfig.json`.
+- Include `src`, `test`, and optional scripts in the no-emit config.
+- Build only `src` through `tsconfig.build.json`; entrypoint is `dist/main.js`.
+- Use `@repo/jest-config` and keep tests under `test/`.
+- Import workspace dependencies through package names, never `packages/*/src`.
+- Keep local environment loading in app scripts and secrets outside images.
+
+Typical scripts:
 
 ```json
 {
   "build": "nest build",
   "dev": "... nest start --watch",
-  "typecheck": "tsc -b --noEmit",
-  "test": "jest --passWithNoTests",
-  "test:int": "jest --passWithNoTests",
-  "test:e2e": "jest --passWithNoTests",
-  "test:cov": "jest --coverage"
+  "typecheck": "tsc --noEmit",
+  "test": "pnpm test:unit",
+  "test:unit": "... jest --config jest.config.mjs --passWithNoTests",
+  "test:int": "... jest --testRegex '.int-spec.ts$' --passWithNoTests",
+  "test:e2e": "... jest --testRegex '.e2e-spec.ts$' --passWithNoTests"
 }
 ```
 
-## Config
-
-- Extend `@repo/typescript-config/node.json`.
-- Use `@repo/jest-config`.
-- Load root `.env` plus app `.env` for local dev.
-- Keep runtime secrets outside images.
-
-## Docker/Deploy Registration
-
-Add:
-
-- `apps/<app>/Dockerfile`
-- `infrastructure/docker/services/<app>.yml`
-- service blocks in `compose.local.yml`, `compose.staging.yml`, `compose.production.yml`
-- image name to `.github/actions/docker-build-push/action.yml` only if Dockerfile path is special
-- app name to `infrastructure/scripts/deploy.sh` arrays if it is deployable
-
-## Rule
-
-Apps own transport/runtime wiring. Business logic should move to `modules/*` when it becomes reusable or domain-heavy.
-
-Related: [Architecture](../architecture/architecture.md), [Docker](../infra/docker.md)
+Register deployable apps in Docker compose, image detection, and deploy scripts. Business logic belongs in `modules/*` when it becomes domain-heavy or reusable.

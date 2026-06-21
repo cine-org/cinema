@@ -71,7 +71,8 @@ Artifact contains:
 ```text
 infrastructure/docker/
 infrastructure/nginx/
-infrastructure/scripts/deploy.sh
+infrastructure/scripts/deploy-runtime.sh
+infrastructure/scripts/deploy-staging.sh
 ```
 
 ## VPS
@@ -87,7 +88,7 @@ Uses GitHub Environment `staging` secrets:
 Deploy command shape:
 
 ```bash
-bash /opt/cinema/current/infrastructure/scripts/deploy.sh staging --tag latest api web-user
+bash /opt/cinema/current/infrastructure/scripts/deploy-staging.sh api web-user
 ```
 
 Related: [Docker](../infra/docker.md), [Deploy](deploy.md)

@@ -59,7 +59,9 @@ redis: localhost:6380
       infrastructure/
         docker/
         nginx/
-        scripts/deploy.sh
+        scripts/deploy-runtime.sh
+        scripts/deploy-staging.sh
+        scripts/deploy-production.sh
 
 /etc/cinema/env/
   docker.env

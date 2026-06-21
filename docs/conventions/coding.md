@@ -25,13 +25,13 @@ Purpose: repo-wide code style and architectural guardrails.
 
 ## Frontend
 
-- Runtime public config is read from `window.__APP_CONFIG__`, then Vite env fallback.
-- App code should consume `config`, not raw `import.meta.env`.
+- Runtime public config is served by the Next `/runtime-config` route, with `NEXT_PUBLIC_*` as the build-time fallback.
+- App code should consume `config`, not read `process.env.NEXT_PUBLIC_*` throughout feature code.
 - API calls should go through `@repo/api-client` or app-level API helpers.
 
 ## Tests
 
-- Unit: close to source, `*.spec.ts`.
+- Unit: mirrored under `test/`, `*.spec.ts`.
 - Integration: real DB/Redis when needed, `*.int-spec.ts`.
 - E2E: app boundary tests, `*.e2e-spec.ts`.
 

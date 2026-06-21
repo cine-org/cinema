@@ -1,52 +1,45 @@
 # TypeScript Config
 
-Purpose: shared TypeScript presets in `@repo/typescript-config`.
+Purpose: shared TypeScript presets and a consistent typecheck/build boundary.
 
 ## Presets
 
-- `base.json`: strict shared foundation.
-- `node.json`: Node/Nest packages with decorators enabled.
-- `react-app.json`: React source code, Vite/browser.
-- `react-node.json`: Vite/Vitest config files.
+- `base.json`: strict defaults shared by all TypeScript projects.
+- `node.json`: generic Node.js packages using NodeNext resolution.
+- `nest.json`: Node preset plus decorators and metadata.
+- `next.json`: browser, JSX, bundler resolution, and the Next plugin.
 
-## Typical Usage
+## Nest Apps
 
-Node/Nest:
-
-```json
-{
-  "extends": "@repo/typescript-config/node.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "."
-  }
-}
-```
-
-React app:
+`tsconfig.json` covers `src` and `test` for editors, ESLint, and typecheck. `tsconfig.build.json` emits only `src`:
 
 ```json
 {
-  "extends": "@repo/typescript-config/react-app.json",
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "types": ["vite/client", "vitest/globals"],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "noEmit": false,
+    "rootDir": "./src",
+    "outDir": "./dist"
   },
-  "include": ["src"]
+  "include": ["src/**/*"]
 }
 ```
 
-## Root `tsconfig.json`
+Nest CLI automatically uses `tsconfig.build.json`. The runtime entrypoint is `dist/main.js`.
 
-Root only contains project references. Add every new app/package/module there when it should participate in `tsc -b`.
+Operational scripts stay outside `src`. The OpenAPI generator is a small `.mjs` runner that builds the API first and imports the compiled OpenAPI module from `dist`; it is linted as JavaScript and is not part of the TypeScript production output.
 
-## Generated Code
+## Modules And Packages
 
-Generated code imported by source should live under `src/generated`, for example:
+Libraries use two configs:
 
-```text
-packages/api-client/src/generated/openapi/types.ts
-packages/database/src/generated/prisma/
-```
+- `tsconfig.json`: no emit; includes `src`, mirrored `test`, and config/scripts that require typechecking.
+- `tsconfig.build.json`: emits declarations and JavaScript from `src` to `dist`.
+
+Package metadata must expose `dist`, never `src`. Consumers import the public package root, not internal source paths.
+
+## Root Config
+
+Root `tsconfig.json` has no project references. Turbo owns the workspace task graph and invokes each package's `typecheck` or `build` script.
+
+Generated code imported by source stays under `src/generated`, including Prisma and OpenAPI output.

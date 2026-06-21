@@ -71,6 +71,6 @@ Do not use web-domain `/health` as a public contract.
 
 ## DNS And Reload
 
-Nginx uses Docker DNS (`127.0.0.11`) and variable `proxy_pass` to avoid stale container IPs after deploy. `deploy.sh` reloads nginx after deploying `api`, `web-user`, or `web-admin`.
+Nginx uses Docker DNS (`127.0.0.11`) and variable `proxy_pass` to avoid stale container IPs after deploy. Shared deploy runtime reloads a running nginx container after public app deploys, starts it when missing, and updates it explicitly when `nginx` is a target.
 
 Related: [Docker](docker.md), [Deploy](../workflow/deploy.md)

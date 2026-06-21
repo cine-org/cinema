@@ -1,15 +1,9 @@
 {
-  "extends": "@repo/typescript-config/node.json",
+  "extends": "@repo/typescript-config/nest.json",
   "compilerOptions": {
+    "noEmit": true,
     "types": ["node"],
-    "removeComments": true,
-    "sourceMap": true,
-    "outDir": "./dist",
-    "rootDir": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "incremental": true,
+    "paths": { "@/*": ["./src/*"] },
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
