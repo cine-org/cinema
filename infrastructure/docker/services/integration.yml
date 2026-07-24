@@ -1,8 +1,10 @@
 services:
   integration:
     depends_on:
-      postgres:
+      pgbouncer:
         condition: service_healthy
+      db-access-reconciler:
+        condition: service_completed_successfully
       redis:
         condition: service_healthy
     networks:

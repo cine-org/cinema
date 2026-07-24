@@ -7,7 +7,7 @@ services:
       context: ../..
       dockerfile: packages/database/migrator/Dockerfile
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      DATABASE_URL: postgresql://${DB_MIGRATOR_USER}:${DB_MIGRATOR_PASSWORD}@postgres:5432/${POSTGRES_DB}
 
   api:
     build:
@@ -15,6 +15,7 @@ services:
       dockerfile: apps/api/Dockerfile
     environment:
       NODE_ENV: development
+      DATABASE_URL: postgresql://${DB_APP_USER}:${DB_APP_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}
     env_file:
       - ../../.env
       - ../../apps/api/.env
@@ -27,6 +28,7 @@ services:
       dockerfile: apps/scheduler/Dockerfile
     environment:
       NODE_ENV: development
+      DATABASE_URL: postgresql://${DB_APP_USER}:${DB_APP_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}
     env_file:
       - ../../.env
       - ../../apps/scheduler/.env
@@ -37,6 +39,7 @@ services:
       dockerfile: apps/worker/Dockerfile
     environment:
       NODE_ENV: development
+      DATABASE_URL: postgresql://${DB_APP_USER}:${DB_APP_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}
     env_file:
       - ../../.env
       - ../../apps/worker/.env
@@ -47,6 +50,7 @@ services:
       dockerfile: apps/integration/Dockerfile
     environment:
       NODE_ENV: development
+      DATABASE_URL: postgresql://${DB_APP_USER}:${DB_APP_PASSWORD}@pgbouncer:6432/${POSTGRES_DB}
     env_file:
       - ../../.env
       - ../../apps/integration/.env
@@ -73,6 +77,10 @@ services:
     image: postgres:16-alpine
     ports:
       - '5432:5432'
+
+  pgbouncer:
+    ports:
+      - '6432:6432'
 
   redis:
     ports:
