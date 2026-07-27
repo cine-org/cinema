@@ -2,9 +2,9 @@ import { z } from 'zod';
 
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  API_PORT: z.coerce.number().default(3000),
   API_ORIGIN: z.url().optional(),
   API_PREFIX: z.string().default('/api'),
-  PORT: z.coerce.number().default(3000),
   CORS_ORIGINS: z.string().default(''),
   ENABLE_SWAGGER: z.coerce.boolean().default(false),
   LOG_LEVEL: z.enum(['log', 'error', 'warn', 'debug', 'verbose']).default('log'),

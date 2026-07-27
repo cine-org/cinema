@@ -1,33 +1,68 @@
+x-redis-logging: &redis-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
 services:
-  redis:
+  redis-cache:
     image: redis:7-alpine
+    profiles:
+      - redis
     environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_CACHE_PASSWORD: ${REDIS_CACHE_PASSWORD:-}
     command:
       - sh
       - -c
       - |
-        if [ -n "$REDIS_PASSWORD" ]; then
-          exec redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru --requirepass "$REDIS_PASSWORD"
+        if [ -n "$$REDIS_CACHE_PASSWORD" ]; then
+          exec redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru --requirepass "$$REDIS_CACHE_PASSWORD"
         fi
         exec redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
     healthcheck:
       test:
         [
           'CMD-SHELL',
-          'if [ -n "$REDIS_PASSWORD" ]; then redis-cli -a "$REDIS_PASSWORD" ping; else redis-cli ping; fi',
+          'if [ -n "$$REDIS_CACHE_PASSWORD" ]; then redis-cli -a "$$REDIS_CACHE_PASSWORD" ping; else redis-cli ping; fi',
         ]
       interval: 5s
       timeout: 5s
       retries: 5
       start_period: 20s
     volumes:
-      - redis_data:/data
+      - redis_cache_data:/data
     networks:
       - cinema
     restart: unless-stopped
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
-        max-file: '3'
+    logging: *redis-logging
+
+  redis-queue:
+    image: redis:7-alpine
+    profiles:
+      - redis
+    environment:
+      REDIS_QUEUE_PASSWORD: ${REDIS_QUEUE_PASSWORD:-}
+    command:
+      - sh
+      - -c
+      - |
+        if [ -n "$$REDIS_QUEUE_PASSWORD" ]; then
+          exec redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy noeviction --requirepass "$$REDIS_QUEUE_PASSWORD"
+        fi
+        exec redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy noeviction
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'if [ -n "$$REDIS_QUEUE_PASSWORD" ]; then redis-cli -a "$$REDIS_QUEUE_PASSWORD" ping; else redis-cli ping; fi',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    volumes:
+      - redis_queue_data:/data
+    networks:
+      - cinema
+    restart: unless-stopped
+    logging: *redis-logging

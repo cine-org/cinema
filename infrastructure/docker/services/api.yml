@@ -9,10 +9,10 @@ services:
       retries: 3
       start_period: 30s
     depends_on:
-      postgres:
+      pgbouncer:
         condition: service_healthy
-      redis:
-        condition: service_healthy
+      db-access-reconciler:
+        condition: service_completed_successfully
     networks:
       - cinema
     restart: unless-stopped

@@ -32,7 +32,7 @@ async function bootstrap() {
 
   setupSwagger(app, configService);
 
-  await app.listen(appConfig.port);
+  await app.listen(appConfig.apiPort);
 }
 
 bootstrap().catch((err) => {

@@ -32,6 +32,7 @@ secrets/
 docker-data/
 *.pid
 compose.override.yml
+infrastructure/docker/infra/pgbouncer/.secrets/
 
 # misc
 .tmp/
@@ -43,6 +44,8 @@ temp/
 .cursor/
 .antigravity/
 .claude/
+.codex/
+AGENTS.md
 
 # os
 .DS_Store

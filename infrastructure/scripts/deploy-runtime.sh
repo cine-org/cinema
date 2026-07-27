@@ -111,10 +111,19 @@ run_database_migrations() {
   should_run_migrations || return 0
 
   log "Ensure database dependencies..."
-  compose -f "$COMPOSE_OVERLAY" -f "$COMPOSE_OVERRIDE" up -d postgres redis
+  compose -f "$COMPOSE_OVERLAY" -f "$COMPOSE_OVERRIDE" up -d postgres
+
+  log "Provision database roles and base privileges..."
+  compose -f "$COMPOSE_OVERLAY" -f "$COMPOSE_OVERRIDE" run --rm --no-deps db-provisioner prepare
 
   log "Run database migrations..."
-  compose -f "$COMPOSE_OVERLAY" -f "$COMPOSE_OVERRIDE" run --rm migrator
+  compose -f "$COMPOSE_OVERLAY" -f "$COMPOSE_OVERRIDE" run --rm --no-deps migrator
+
+  log "Reconcile and verify runtime database privileges..."
+  compose -f "$COMPOSE_OVERLAY" -f "$COMPOSE_OVERRIDE" run --rm --no-deps db-access-reconciler reconcile
+
+  log "Ensure PgBouncer..."
+  compose -f "$COMPOSE_OVERLAY" -f "$COMPOSE_OVERRIDE" up -d --wait --no-deps pgbouncer
 }
 
 target_has_nginx() {
@@ -172,7 +181,7 @@ deploy_runtime() {
   done
 
   if [[ ${#app_services[@]} -gt 0 ]]; then
-    compose -f "$COMPOSE_OVERLAY" -f "$COMPOSE_OVERRIDE" up -d --no-build --remove-orphans "${app_services[@]}"
+    compose -f "$COMPOSE_OVERLAY" -f "$COMPOSE_OVERRIDE" up -d --no-build --no-deps --remove-orphans "${app_services[@]}"
   fi
 
   sync_nginx

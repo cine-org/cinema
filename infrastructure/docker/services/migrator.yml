@@ -1,8 +1,8 @@
 services:
   migrator:
     depends_on:
-      postgres:
-        condition: service_healthy
+      db-provisioner:
+        condition: service_completed_successfully
     networks:
       - cinema
     restart: 'no'

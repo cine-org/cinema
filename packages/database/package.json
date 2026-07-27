@@ -34,8 +34,10 @@
     "test:e2e": "dotenv -e ../../.env.test -- vitest run .e2e-spec.ts --passWithNoTests"
   },
   "dependencies": {
+    "@nestjs/common": "^11.0.1",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@repo/contracts": "workspace:*",
     "dotenv": "^17.4.2",
     "prisma": "^7.8.0"
   },

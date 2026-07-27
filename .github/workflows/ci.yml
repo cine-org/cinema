@@ -54,7 +54,8 @@ jobs:
           cat > .env.test <<'EOF'
           NODE_ENV=test
           DATABASE_URL=postgresql://postgres:postgres@localhost:5432/cinema_test
-          REDIS_URL=redis://localhost:6379
+          REDIS_CACHE_URL=redis://localhost:6379
+          REDIS_QUEUE_URL=redis://localhost:6381
           EOF
 
       - name: Run quality checks
@@ -79,10 +80,19 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
-      redis:
+      redis-cache:
         image: redis:7-alpine
         ports:
           - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis-queue:
+        image: redis:7-alpine
+        ports:
+          - 6381:6379
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 5s
@@ -99,7 +109,8 @@ jobs:
           cat > .env.test <<'EOF'
           NODE_ENV=test
           DATABASE_URL=postgresql://postgres:postgres@localhost:5432/cinema_test
-          REDIS_URL=redis://localhost:6379
+          REDIS_CACHE_URL=redis://localhost:6379
+          REDIS_QUEUE_URL=redis://localhost:6381
           EOF
 
       - name: Run integration checks

@@ -9,7 +9,7 @@ services:
 
   migrator:
     env_file:
-      - ${ENV_DIR}/shared.env
+      - ${ENV_DIR}/migrator.env
 
   api:
     environment:
