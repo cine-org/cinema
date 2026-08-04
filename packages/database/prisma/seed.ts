@@ -1,5 +1,4 @@
-import { createDatabaseClient } from '../src/client';
-import { seedUsers } from './seeds/users.seed';
+import { DatabaseClient } from '../src/database.client';
 
 const databaseUrl = process.env['DATABASE_URL'];
 
@@ -7,13 +6,11 @@ if (!databaseUrl) {
   throw new Error('DATABASE_URL is required to seed the database');
 }
 
-const db = createDatabaseClient({
+const db = new DatabaseClient({
   url: databaseUrl,
 });
 
-async function main() {
-  await seedUsers(db);
-}
+async function main() {}
 
 main()
   .then(async () => {

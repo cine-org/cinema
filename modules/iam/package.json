@@ -1,0 +1,36 @@
+﻿{
+  "name": "@repo/iam",
+  "version": "0.0.0",
+  "description": "",
+  "private": true,
+  "license": "ISC",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "pnpm test:unit",
+    "test:unit": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage --passWithNoTests"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.1",
+    "@repo/contracts": "workspace:*",
+    "@repo/database": "workspace:*",
+    "@repo/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@repo/vitest-config": "workspace:*",
+    "@vitest/coverage-v8": "^3.2.4",
+    "vitest": "^3.2.4"
+  }
+}

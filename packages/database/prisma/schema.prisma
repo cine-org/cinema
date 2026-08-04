@@ -8,16 +8,231 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id                      String            @id @default(uuid())
-  email                   String?           @unique
-  isEmailVerified         Boolean           @default(false)
-  passwordHash            String    
-  username                String            @unique
-  fullName                String?   
-  dateOfBirth             DateTime?         @db.Date
+enum UserStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  DEACTIVATED
+  SUSPENDED
 
-  createdAt               DateTime          @default(now())
-  updatedAt               DateTime          @updatedAt()
-  deletedAt               DateTime?
+  @@map("user_status")
 }
+
+enum IdentityType {
+  EMAIL
+  PHONE
+
+  @@map("identity_type")
+}
+
+enum RoleType {
+  SYSTEM
+  CUSTOM
+
+  @@map("role_type")
+}
+
+model User {
+  id        String     @id @default(uuid())
+  fullName  String?    @map("full_name")
+  avatarUrl String?    @map("avatar_url")
+  status    UserStatus @default(PENDING_VERIFICATION)
+
+  identities         UserIdentity[]
+  oauthAccounts      OAuthAccount[]
+  passwordCredential PasswordCredential?
+  sessions           AuthSession[]
+  roles              UserRole[]
+
+  dateOfBirth DateTime? @map("date_of_birth") @db.Date
+
+  statusChangedAt DateTime @default(now()) @map("status_changed_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@index([fullName])
+  @@index([status])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model UserIdentity {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+
+  type       IdentityType
+  identifier String
+
+  verifiedAt DateTime? @map("verified_at")
+  lastUsedAt DateTime? @map("last_used_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdSessions AuthSession[]
+
+  @@unique([type, identifier])
+  @@unique([userId, type])
+  @@index([lastUsedAt])
+  @@map("user_identities")
+}
+
+model PasswordCredential {
+  id     String @id @default(uuid())
+  userId String @unique @map("user_id")
+
+  passwordHash      String   @map("password_hash")
+  passwordChangedAt DateTime @default(now()) @map("password_changed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_credentials")
+}
+
+model OAuthAccount {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+
+  provider          String @map("provider")
+  providerAccountId String @map("provider_account_id")
+
+  email       String?
+  displayName String? @map("display_name")
+  avatarUrl   String? @map("avatar_url")
+
+  accessToken  String?   @map("access_token")
+  refreshToken String?   @map("refresh_token")
+  expiresAt    DateTime? @map("expires_at")
+  scope        String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("oauth_accounts")
+}
+
+model AuthSession {
+  id                  String  @id @default(uuid())
+  userId              String  @map("user_id")
+  createdByIdentityId String? @map("created_by_identity_id")
+
+  deviceId   String? @map("device_id")
+  deviceName String? @map("device_name")
+  userAgent  String? @map("user_agent")
+  ipAddress  String? @map("ip_address")
+
+  expiresAt  DateTime? @map("expires_at")
+  revokedAt  DateTime? @map("revoked_at")
+  lastUsedAt DateTime  @default(now()) @map("last_used_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdByIdentity UserIdentity?  @relation(fields: [createdByIdentityId], references: [id], onDelete: SetNull)
+  refreshTokens     RefreshToken[]
+
+  @@index([userId])
+  @@index([createdByIdentityId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@index([lastUsedAt])
+  @@map("auth_sessions")
+}
+
+model RefreshToken {
+  id        String @id @default(uuid())
+  sessionId String @map("session_id")
+
+  tokenHash String @unique @map("token_hash")
+
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  rotatedAt DateTime? @map("rotated_at")
+
+  replacedByTokenId String? @unique @map("replaced_by_token_id")
+  reuseDetectedAt   DateTime? @map("reuse_detected_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  session         AuthSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  replacedByToken RefreshToken? @relation("RefreshTokenRotation", fields: [replacedByTokenId], references: [id], onDelete: SetNull)
+  replacedToken   RefreshToken? @relation("RefreshTokenRotation")
+
+  @@index([sessionId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+  @@index([rotatedAt])
+  @@index([reuseDetectedAt])
+  @@map("refresh_tokens")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String?
+  description String?
+  type        RoleType @default(CUSTOM)
+
+  users       UserRole[]
+  permissions RolePermission[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@map("roles")
+}
+
+model Permission {
+  id          String  @id @default(uuid())
+  code        String  @unique
+  description String?
+
+  roles RolePermission[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("permissions")
+}
+
+model UserRole {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+  roleId String @map("role_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  id           String @id @default(uuid())
+  roleId       String @map("role_id")
+  permissionId String @map("permission_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+

@@ -8,10 +8,10 @@ Purpose: local compose, test compose, and VPS compose layout.
 infrastructure/docker/
   compose.yml             base volumes, networks, service includes
   compose.local.yml       local build/env overlay
-  compose.test.yml        Postgres/Redis for tests only
+  compose.test.yml        Postgres for tests only
   compose.staging.yml     staging env overlay
   compose.production.yml  production env overlay
-  infra/                  postgres, redis, nginx service definitions
+  infra/                  postgres/provisioning, PgBouncer, optional Redis, nginx
   services/               app service definitions
 ```
 
@@ -21,6 +21,7 @@ Base compose avoids hardcoded release images. Deploy injects images through temp
 
 ```bash
 pnpm docker:infra
+pnpm docker:redis
 pnpm docker:up
 pnpm docker:down
 pnpm docker:logs
@@ -46,7 +47,6 @@ Test compose is isolated:
 ```text
 project: cinema-test
 postgres: localhost:5433
-redis: localhost:6380
 ```
 
 ## VPS Layout
@@ -66,12 +66,16 @@ redis: localhost:6380
 /etc/cinema/env/
   docker.env
   shared.env
+  migrator.env
   api.env
   scheduler.env
   worker.env
   integration.env
   web-user.env
   web-admin.env
+
+/etc/cinema/secrets/
+  pgbouncer-userlist.txt
 
 /etc/cinema/ssl/
   fullchain.pem
@@ -84,7 +88,10 @@ GitHub Actions uploads `deploy-artifact.tar.gz`; the VPS extracts it under `/opt
 
 - Staging uses image tag `latest`.
 - Production uses `release-manifest.yml`.
-- `migrator` runs before backend deploys.
+- PostgreSQL roles are provisioned before `migrator`.
+- `migrator` connects directly as `cinema_migrator`.
+- Runtime services connect through PgBouncer as `cinema_app`.
+- Runtime grants are reconciled and verified after migration.
 - Secrets/env stay outside artifacts in `/etc/cinema/env`.
 
 Related: [Staging](../workflow/staging.md), [Deploy](../workflow/deploy.md)

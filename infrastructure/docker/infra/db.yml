@@ -1,3 +1,27 @@
+x-db-provisioning: &db-provisioning
+  image: postgres:16-bookworm
+  environment:
+    PGHOST: postgres
+    PGPORT: 5432
+    PGDATABASE: ${POSTGRES_DB:-cinema}
+    PGUSER: ${POSTGRES_USER:-postgres}
+    PGPASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    DB_APP_USER: ${DB_APP_USER:-cinema_app}
+    DB_APP_PASSWORD: ${DB_APP_PASSWORD:-}
+    DB_MIGRATOR_USER: ${DB_MIGRATOR_USER:-cinema_migrator}
+    DB_MIGRATOR_PASSWORD: ${DB_MIGRATOR_PASSWORD:-}
+  volumes:
+    - ./postgres:/opt/cinema/postgres:ro
+  entrypoint: ['/opt/cinema/postgres/provision.sh']
+  networks:
+    - cinema
+  restart: 'no'
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: '3'
+
 services:
   postgres:
     image: postgres:16-bookworm
@@ -20,6 +44,46 @@ services:
     networks:
       - cinema
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+  db-provisioner:
+    <<: *db-provisioning
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ['prepare']
+
+  db-access-reconciler:
+    <<: *db-provisioning
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    command: ['reconcile']
+
+  pgbouncer:
+    image: percona/percona-pgbouncer:1.25.2-1@sha256:0b1592e21978f3b5ee0ac225666d9166b945db55dde0d69cd8bea73db5170b05
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-provisioner:
+        condition: service_completed_successfully
+    volumes:
+      - ./pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ${PGBOUNCER_AUTH_FILE:-./pgbouncer/.secrets/userlist.txt}:/etc/pgbouncer/userlist.txt:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'timeout 2 bash -c "</dev/tcp/127.0.0.1/6432"']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - cinema
+    restart: unless-stopped
+    stop_grace_period: 10s
     logging:
       driver: json-file
       options:

@@ -1,4 +1,5 @@
-import type { CommonErrorCode } from './common-error-code';
+﻿import type { CommonErrorCode } from './common-error-code';
 import type { UserErrorCode } from './user-error-code';
+import type { IamErrorCode } from './iam-error-code';
 
-export type AppErrorCode = CommonErrorCode | UserErrorCode;
+export type AppErrorCode = CommonErrorCode | UserErrorCode | IamErrorCode;
