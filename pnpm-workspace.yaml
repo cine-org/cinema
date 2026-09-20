@@ -5,6 +5,7 @@ packages:
   - 'tooling/*'
 allowBuilds:
   '@nestjs/core': true
+  argon2: true
   '@prisma/engines': true
   lefthook: true
   prisma: true

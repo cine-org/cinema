@@ -45,7 +45,7 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "prepare": "lefthook install",
-    "openapi:generate:schema": "turbo run generate --filter=@repo/api",
+    "openapi:generate:schema": "turbo run generate --filter=@repo/api --env-mode=loose",
     "openapi:generate:types": "turbo run generate --filter=@repo/api-client",
     "openapi:generate": "pnpm openapi:generate:schema && pnpm openapi:generate:types",
     "db:generate": "pnpm --filter @repo/database db:generate",

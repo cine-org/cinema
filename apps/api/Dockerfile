@@ -16,6 +16,7 @@ COPY --from=pruner /repo/out/json/ .
 COPY --from=pruner /repo/out/pnpm-lock.yaml ./pnpm-lock.yaml
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm rebuild argon2
 
 FROM deps AS builder
 ARG TURBO_TOKEN
@@ -31,6 +32,10 @@ RUN pnpm --filter @repo/api --prod deploy /deploy
 FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /deploy .
+RUN corepack enable pnpm
+COPY --from=builder --chown=node:node /deploy .
+COPY --from=builder --chown=node:node /repo/packages/database/prisma ./packages/database/prisma
+COPY --from=builder --chown=node:node /repo/packages/database/prisma.config.ts ./packages/database/prisma.config.ts
+USER node
 EXPOSE 3000
 CMD ["node", "dist/main"]

@@ -1,13 +1,15 @@
 pre-commit:
-  parallel: true
+  # Both commands rewrite and re-stage the same files. Running them in parallel
+  # can contend on the Git index and leave one command waiting indefinitely.
+  parallel: false
   commands:
-    lint:
-      glob: '*.{ts,tsx,js,mjs}'
-      run: ./node_modules/.bin/eslint --fix --no-warn-ignored {staged_files}
-      stage_fixed: true
     format:
       glob: '*.{ts,tsx,js,mjs,json,md,yaml,yml,css}'
       run: ./node_modules/.bin/prettier --write {staged_files}
+      stage_fixed: true
+    lint:
+      glob: '*.{ts,tsx,js,mjs}'
+      run: ./node_modules/.bin/eslint --fix --no-warn-ignored {staged_files}
       stage_fixed: true
 
 commit-msg:

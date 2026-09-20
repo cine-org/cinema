@@ -16,11 +16,12 @@
     "test": "pnpm test:unit",
     "test:unit": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --passWithNoTests",
     "test:int": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --testRegex '.int-spec.ts$' --passWithNoTests",
-    "test:e2e": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --testRegex '.e2e-spec.ts$' --passWithNoTests",
+    "test:e2e": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules jest --config jest.config.mjs --testRegex '.e2e-spec.ts$' --passWithNoTests",
     "test:cov": "dotenv -e ../../.env.test -- cross-env NODE_ENV=test jest --config jest.config.mjs --coverage --passWithNoTests",
     "test:watch": "jest --config jest.config.mjs --watch",
     "generate": "pnpm build && dotenv -e ../../.env -e .env -- node scripts/generate-openapi.mjs",
-    "openapi:generate": "pnpm generate"
+    "openapi:generate": "pnpm generate",
+    "db:deploy": "prisma migrate deploy --config packages/database/prisma.config.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -28,9 +29,13 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.4.1",
     "@repo/contracts": "workspace:*",
+    "@repo/auth": "workspace:*",
     "@repo/database": "workspace:*",
+    "@repo/iam": "workspace:*",
     "@repo/shared": "workspace:*",
+    "@repo/users": "workspace:*",
     "reflect-metadata": "^0.2.2",
+    "prisma": "^7.8.0",
     "rxjs": "^7.8.1",
     "zod": "^4.3.6"
   },

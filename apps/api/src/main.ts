@@ -22,6 +22,8 @@ async function bootstrap() {
         path: 'health',
         method: RequestMethod.ALL,
       },
+      { path: 'health/live', method: RequestMethod.ALL },
+      { path: 'health/ready', method: RequestMethod.ALL },
     ],
   });
   app.enableVersioning({
@@ -29,6 +31,7 @@ async function bootstrap() {
     defaultVersion: '1',
   });
   app.useGlobalFilters(new GlobalExceptionFilter());
+  app.enableShutdownHooks();
 
   setupSwagger(app, configService);
 

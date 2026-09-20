@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 
 import { NestFactory } from '@nestjs/core';
+import { RequestMethod, VersioningType } from '@nestjs/common';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 
@@ -11,6 +12,15 @@ async function main() {
   const app = await NestFactory.create(OpenApiModule, {
     logger: false,
   });
+
+  app.setGlobalPrefix(process.env.API_PREFIX || '/api', {
+    exclude: [
+      { path: 'health', method: RequestMethod.ALL },
+      { path: 'health/live', method: RequestMethod.ALL },
+      { path: 'health/ready', method: RequestMethod.ALL },
+    ],
+  });
+  app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
 
   try {
     const document = createOpenApiDocument(app);

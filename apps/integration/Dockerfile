@@ -31,5 +31,6 @@ RUN pnpm --filter @repo/integration --prod deploy /deploy
 FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /deploy .
+COPY --from=builder --chown=node:node /deploy .
+USER node
 CMD ["node", "dist/main"]
