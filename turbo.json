@@ -67,6 +67,11 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
+    "db:seed": {
+      "dependsOn": ["^db:seed"],
+      "cache": false,
+      "passThroughEnv": ["DATABASE_URL"]
+    },
     "clean": {
       "cache": false
     }

@@ -1,10 +1,16 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
-import { COMMON_ERROR_CODE, type ErrorDetail } from '@repo/contracts';
-import { AppException } from '@repo/shared';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
+import { AppException, COMMON_ERROR_CODE, type ErrorDetail } from '@repo/common';
 import { getHttpStatusForErrorCode } from '@/common/errors';
+import { REQUEST_ID_HEADER } from '@/common/middleware';
 import { ErrorResponse } from '@/common/responses';
 import { Response } from 'express';
-import { ZodError } from 'zod';
 
 const NEST_HTTP_STATUS_ERROR_CODE: Record<number, string> = {
   [HttpStatus.BAD_REQUEST]: COMMON_ERROR_CODE.BAD_REQUEST,
@@ -23,6 +29,8 @@ const NEST_HTTP_STATUS_ERROR_CODE: Record<number, string> = {
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(GlobalExceptionFilter.name);
+
   catch(exception: unknown, host: ArgumentsHost) {
     const response = host.switchToHttp().getResponse<Response>();
     const requestId = this.getRequestId(response);
@@ -38,22 +46,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       );
     }
 
-    if (exception instanceof ZodError) {
-      return response.status(HttpStatus.BAD_REQUEST).json(
-        ErrorResponse.of({
-          message: 'Validation failed',
-          code: COMMON_ERROR_CODE.VALIDATION,
-          errors: this.mapZodDetails(exception),
-          requestId,
-        }),
-      );
-    }
-
     if (exception instanceof HttpException) {
       return this.handleHttpException(exception, response, requestId);
     }
 
-    console.error(exception);
+    this.logger.error(exception instanceof Error ? exception.stack : exception);
 
     return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(
       ErrorResponse.of({
@@ -122,7 +119,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
   private getHttpExceptionDetails(response: Record<string, unknown>): ErrorDetail[] | undefined {
     if (Array.isArray(response.errors)) {
-      return response.errors.filter(this.isErrorDetail);
+      return response.errors.filter((value) => this.isErrorDetail(value));
     }
 
     if (Array.isArray(response.message)) {
@@ -136,20 +133,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     return undefined;
   }
 
-  private mapZodDetails(error: ZodError): ErrorDetail[] {
-    return error.issues.map((issue) => ({
-      field: issue.path.join('.') || undefined,
-      message: issue.message,
-      code: issue.code,
-    }));
-  }
-
   private getDefaultCode(status: number) {
     return NEST_HTTP_STATUS_ERROR_CODE[status] ?? COMMON_ERROR_CODE.INTERNAL;
   }
 
   private getRequestId(response: Response) {
-    const header = response.getHeader('x-request-id');
+    const header = response.getHeader(REQUEST_ID_HEADER);
 
     if (typeof header === 'string') {
       return header;

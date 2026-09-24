@@ -16,25 +16,19 @@ pnpm install
 
 ## Env Files
 
-Local dev uses normal `.env` files:
+Each app, `packages/database` (Prisma CLI) and `docker/` owns its `.env`; there is no root `.env`.
+Shared values such as `DATABASE_URL` are repeated on purpose, like each deployment's own env:
 
 ```bash
-cp .env.example .env
-cp docker/.env.example docker/.env
-cp apps/api/.env.example apps/api/.env
-cp apps/web-user/.env.example apps/web-user/.env
-cp apps/web-admin/.env.example apps/web-admin/.env
-cp apps/integration/.env.example apps/integration/.env
-cp apps/scheduler/.env.example apps/scheduler/.env
-cp apps/worker/.env.example apps/worker/.env
+for f in $(git ls-files '*.env.example'); do cp -n "$f" "${f%.example}"; done
 ```
 
 Use the local values shown in comments when running outside deploy.
 
-Test uses a separate env:
+Test uses a separate `.env.test` next to each `.env` that needs one:
 
 ```bash
-cp .env.test.example .env.test
+for f in $(git ls-files '*.env.test.example'); do cp -n "$f" "${f%.example}"; done
 ```
 
 Deploy env files live on the VPS, outside the repo:

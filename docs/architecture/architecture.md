@@ -24,14 +24,15 @@ docs/            short project references
 
 ## Packages
 
-- `@repo/database`: Prisma schema, migrations, generated client, migrator image.
-- `@repo/contracts`: shared non-endpoint wire contracts such as errors/common types.
+- `@repo/database`: Prisma schema, migrations, generated client. Migrations ship inside the api image.
 - `@repo/api-client`: OpenAPI-generated types plus thin client helpers.
 - `@repo/utils`, `@repo/logger`, `@repo/queue`: shared runtime utilities.
 
 ## Modules
 
 `modules/*` holds backend business capabilities. Apps import modules; modules should not import apps.
+Each module owns its error codes; `@repo/common` holds the generic ones. See [Module Template](../modules/template.md)
+for the query and command conventions.
 
 Recommended direction:
 

@@ -1,5 +1,6 @@
 import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
 import { ApiOkResponse, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { RawResponse } from '@/common/responses';
 
 export class HealthResponseDto {
   @ApiProperty({
@@ -9,6 +10,7 @@ export class HealthResponseDto {
 }
 
 @ApiTags('health')
+@RawResponse()
 @Controller({
   path: 'health',
   version: VERSION_NEUTRAL,

@@ -9,15 +9,15 @@ datasource db {
 }
 
 model User {
-  id                      String            @id @default(uuid())
-  email                   String?           @unique
-  isEmailVerified         Boolean           @default(false)
-  passwordHash            String    
-  username                String            @unique
-  fullName                String?   
-  dateOfBirth             DateTime?         @db.Date
+  id                  String      @id @default(uuid())
+  email               String?     @unique
+  isEmailVerified     Boolean     @default(false) @map("is_email_verified")
+  passwordHash        String      @map("password_hash")
+  fullName            String?     @map("full_name")
+  dateOfBirth         DateTime?   @map("date_of_birth") @db.Date
+  createdAt           DateTime    @default(now()) @map("created_at")
+  updatedAt           DateTime    @updatedAt @map("updated_at")
+  deletedAt           DateTime?   @map("deleted_at")
 
-  createdAt               DateTime          @default(now())
-  updatedAt               DateTime          @updatedAt()
-  deletedAt               DateTime?
+  @@map("users")
 }

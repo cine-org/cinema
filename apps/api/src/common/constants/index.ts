@@ -1,3 +1,0 @@
-/**
- * Common constants barrel export.
- */

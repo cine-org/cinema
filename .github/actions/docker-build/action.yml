@@ -27,7 +27,8 @@ runs:
           org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           org.opencontainers.image.revision=${{ github.sha }}
         build-args: |
-          TURBO_TOKEN=${{ env.TURBO_TOKEN }}
           TURBO_TEAM=${{ env.TURBO_TEAM }}
+        secrets: |
+          turbo_token=${{ env.TURBO_TOKEN }}
         cache-from: type=gha,scope=${{ inputs.app }}
         cache-to: type=gha,mode=max,scope=${{ inputs.app }}

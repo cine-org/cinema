@@ -4,10 +4,10 @@ Purpose: local test flow should match CI as closely as possible.
 
 ## Env
 
-Tests use `.env.test`, not the normal dev `.env`.
+DB-backed tests (`test:int`, `test:e2e`, `db:test:*`) read the package's own `.env.test`; unit tests need no env.
 
 ```bash
-cp .env.test.example .env.test
+for f in $(git ls-files '*.env.test.example'); do cp -n "$f" "${f%.example}"; done
 ```
 
 ## Test Types
@@ -51,6 +51,6 @@ pnpm test:e2e --filter=@repo/api
 
 ## CI Shape
 
-CI creates `.env.test`, runs quality checks, starts Postgres/Redis only for integration/e2e, then applies `pnpm db:test:deploy`.
+CI copies every `.env.test.example`, runs quality checks, starts Postgres/Redis only for integration/e2e, then applies `pnpm db:test:deploy`.
 
 Related: [CI](../workflow/ci.md)

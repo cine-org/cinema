@@ -1,6 +1,6 @@
-import { HttpStatus, type ArgumentsHost } from '@nestjs/common';
-import { COMMON_ERROR_CODE, USER_ERROR_CODE, type AppErrorCode } from '@repo/contracts';
-import { AppException } from '@repo/shared';
+import { HttpStatus, Logger, type ArgumentsHost } from '@nestjs/common';
+import { AppException, COMMON_ERROR_CODE } from '@repo/common';
+import { USER_ERROR_CODE } from '@repo/users';
 import { getHttpStatusForErrorCode } from '@/common/errors';
 import { GlobalExceptionFilter } from '@/common/filters';
 import type { ErrorResponse } from '@/common/responses';
@@ -22,9 +22,7 @@ describe('getHttpStatusForErrorCode', () => {
   });
 
   it('falls back for an unknown runtime code', () => {
-    expect(getHttpStatusForErrorCode('UNKNOWN.CODE' as AppErrorCode)).toBe(
-      HttpStatus.INTERNAL_SERVER_ERROR,
-    );
+    expect(getHttpStatusForErrorCode('UNKNOWN.CODE')).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
   });
 });
 
@@ -68,13 +66,13 @@ describe('GlobalExceptionFilter', () => {
   it('hides and logs unknown exceptions', () => {
     const { host, response } = createHttpContext();
     const exception = new Error('sensitive failure');
-    const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    const logError = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
     try {
       filter.catch(exception, host);
-      expect(consoleError).toHaveBeenCalledWith(exception);
+      expect(logError).toHaveBeenCalledWith(exception.stack);
     } finally {
-      consoleError.mockRestore();
+      logError.mockRestore();
     }
 
     expect(response.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);

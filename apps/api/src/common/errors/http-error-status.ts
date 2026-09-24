@@ -1,5 +1,10 @@
 import { HttpStatus } from '@nestjs/common';
-import { COMMON_ERROR_CODE, USER_ERROR_CODE, type AppErrorCode } from '@repo/contracts';
+import { AUTH_ERROR_CODE, type AuthErrorCode } from '@repo/auth';
+import { COMMON_ERROR_CODE, type CommonErrorCode } from '@repo/common';
+import { USER_ERROR_CODE, type UserErrorCode } from '@repo/users';
+
+// Every code a module can raise; the map below must cover all of them.
+export type AppErrorCode = CommonErrorCode | AuthErrorCode | UserErrorCode;
 
 export const ERROR_CODE_HTTP_STATUS: Record<AppErrorCode, HttpStatus> = {
   [COMMON_ERROR_CODE.BAD_REQUEST]: HttpStatus.BAD_REQUEST,
@@ -16,10 +21,11 @@ export const ERROR_CODE_HTTP_STATUS: Record<AppErrorCode, HttpStatus> = {
   [COMMON_ERROR_CODE.SERVICE_UNAVAILABLE]: HttpStatus.SERVICE_UNAVAILABLE,
   [COMMON_ERROR_CODE.GATEWAY_TIMEOUT]: HttpStatus.GATEWAY_TIMEOUT,
 
+  [AUTH_ERROR_CODE.EMAIL_ALREADY_EXISTS]: HttpStatus.CONFLICT,
+
   [USER_ERROR_CODE.NOT_FOUND]: HttpStatus.NOT_FOUND,
-  [USER_ERROR_CODE.EMAIL_ALREADY_EXISTS]: HttpStatus.CONFLICT,
 } as const;
 
-export function getHttpStatusForErrorCode(code: AppErrorCode): HttpStatus {
-  return ERROR_CODE_HTTP_STATUS[code] ?? HttpStatus.INTERNAL_SERVER_ERROR;
+export function getHttpStatusForErrorCode(code: string): HttpStatus {
+  return ERROR_CODE_HTTP_STATUS[code as AppErrorCode] ?? HttpStatus.INTERNAL_SERVER_ERROR;
 }

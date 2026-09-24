@@ -18,12 +18,12 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile --ignore-scripts
 
 FROM deps AS builder
-ARG TURBO_TOKEN
 ARG TURBO_TEAM
-ENV TURBO_TOKEN=$TURBO_TOKEN
 ENV TURBO_TEAM=$TURBO_TEAM
 COPY --from=pruner /repo/out/full/ .
 RUN --mount=type=cache,id=turbo-api,target=/repo/.turbo \
+    # Secret mount: the Turbo token never lands in a layer or its metadata.
+    --mount=type=secret,id=turbo_token,env=TURBO_TOKEN \
     pnpm exec turbo run build --filter=@repo/api --cache-dir=.turbo
 RUN printf 'inject-workspace-packages=true\n' >> .npmrc
 RUN pnpm --filter @repo/api --prod deploy /deploy
@@ -32,5 +32,9 @@ FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /deploy .
+# The image is also the migrator: a Job runs `node_modules/.bin/prisma migrate deploy` with the owner role.
+COPY --from=builder /repo/packages/database/prisma ./prisma
+COPY --from=builder /repo/packages/database/prisma.config.ts ./prisma.config.ts
+USER node
 EXPOSE 3000
 CMD ["node", "dist/main"]
