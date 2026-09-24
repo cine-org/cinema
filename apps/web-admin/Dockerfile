@@ -18,15 +18,15 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
     pnpm install --frozen-lockfile --ignore-scripts
 
 FROM deps AS builder
-ARG TURBO_TOKEN
 ARG TURBO_TEAM
-ENV TURBO_TOKEN=$TURBO_TOKEN
 ENV TURBO_TEAM=$TURBO_TEAM
 ENV NODE_ENV=production
 COPY --from=pruner /repo/out/full/ .
 COPY apps/api/generated/openapi/schema.json ./apps/api/generated/openapi/schema.json
 
 RUN --mount=type=cache,id=turbo-web-admin,target=/repo/.turbo \
+    # Secret mount: the Turbo token never lands in a layer or its metadata.
+    --mount=type=secret,id=turbo_token,env=TURBO_TOKEN \
     pnpm exec turbo run build --filter=@repo/web-admin --cache-dir=.turbo
 
 FROM base AS runner
