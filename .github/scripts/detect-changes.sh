@@ -1,166 +1,80 @@
 #!/usr/bin/env bash
+# Finds what changed since a base commit: whether code changed, and which app images are affected.
+# Usage: detect-changes.sh [base-sha]. Prints code= and images= (also to $GITHUB_OUTPUT). Needs jq and pnpm install.
 set -euo pipefail
+shopt -s inherit_errexit
 
-##
-# Detect which release images have changed using Turborepo's dependency-aware filtering.
-#
-# Usage:
-#   bash detect-changes.sh [base_ref]
-#
-# Arguments:
-#   base_ref - Git ref to compare against (default: HEAD~1)
-#
-# Output:
-#   JSON array of changed image names, e.g. ["api","web-user","migrator"]
-#   Also sets GITHUB_OUTPUT if running in GitHub Actions.
-#
-# How it works:
-#   Uses `turbo build --dry-run=json --filter="...[<base_ref>]"` to let Turbo
-#   resolve the full dependency graph and report only the packages that are
-#   affected by changes since <base_ref>.
-##
+base="${1:-}"
 
-BASE_REF="${1:-HEAD~1}"
+docs='.*\.md|LICENSE'
+# Root files copied into every image although they belong to no package.
+root_build_files='package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|\.dockerignore'
+# Web apps read it through @repo/api-client, which Turbo does not link to @repo/api.
+openapi_schema='apps/api/generated/openapi/schema\.json'
 
-resolve_base_ref() {
-  local candidate="$1"
-
-  if [[ -n "$candidate" && ! "$candidate" =~ ^0+$ ]] && git cat-file -e "$candidate^{commit}" 2>/dev/null; then
-    echo "$candidate"
-    return
-  fi
-
-  if git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
-    git merge-base HEAD HEAD~1
-    return
-  fi
-
-  git rev-list --max-parents=0 HEAD
+# Empty (manual run), all-zero (new branch) or unknown SHAs cannot be diffed against.
+has_base() {
+  [[ -n "$base" && ! "$base" =~ ^0+$ ]] && git cat-file -e "$base^{commit}" 2>/dev/null
 }
 
-BASE_REF="$(resolve_base_ref "$BASE_REF")"
-
-VALID_APPS=("api" "scheduler" "worker" "integration" "web-user" "web-admin")
-BACKEND_APPS=("api" "scheduler" "worker" "integration")
-ALL_IMAGES=("api" "scheduler" "worker" "integration" "web-user" "web-admin" "migrator")
-
-echo "==> Detecting changes since $BASE_REF using Turborepo..."
-
-TURBO_OUTPUT=$(npx turbo build --dry-run=json --filter="...[${BASE_REF}]" 2>/dev/null)
-CHANGED_PACKAGES=$(echo "$TURBO_OUTPUT" | jq -r '.packages[]' 2>/dev/null || true)
-CHANGED_FILES=$(git diff --name-only "$BASE_REF"...HEAD 2>/dev/null || git diff --name-only "$BASE_REF" 2>/dev/null || true)
-
-echo "==> Turbo affected packages:"
-echo "$CHANGED_PACKAGES"
-
-changed=()
-
-contains_changed() {
-  local image="$1"
-  local existing
-
-  for existing in "${changed[@]}"; do
-    [[ "$existing" == "$image" ]] && return 0
-  done
-
-  return 1
-}
-
-add_image() {
-  local image="$1"
-
-  contains_changed "$image" || changed+=("$image")
-}
-
-add_all_images() {
-  local image
-
-  for image in "${ALL_IMAGES[@]}"; do
-    add_image "$image"
+# Every app with a Dockerfile ships as an image.
+all_apps() {
+  local dockerfile
+  for dockerfile in apps/*/Dockerfile; do
+    basename "$(dirname "$dockerfile")"
   done
 }
 
-add_images_for_file() {
-  local file="$1"
-
-  case "$file" in
-    .dockerignore | package.json | pnpm-lock.yaml | pnpm-workspace.yaml | turbo.json | .github/actions/docker-build-push/action.yml)
-      add_all_images
-      ;;
-    apps/api/Dockerfile)
-      add_image api
-      ;;
-    apps/scheduler/Dockerfile)
-      add_image scheduler
-      ;;
-    apps/worker/Dockerfile)
-      add_image worker
-      ;;
-    apps/integration/Dockerfile)
-      add_image integration
-      ;;
-    apps/web-user/Dockerfile)
-      add_image web-user
-      ;;
-    apps/web-admin/Dockerfile)
-      add_image web-admin
-      ;;
-    packages/database/migrator/Dockerfile)
-      add_image migrator
-      ;;
-    apps/api/generated/openapi/schema.json)
-      add_image web-user
-      add_image web-admin
-      ;;
-    infrastructure/docker/compose.yml | infrastructure/docker/compose.staging.yml | infrastructure/docker/services/* | infrastructure/docker/infra/*)
-      add_all_images
-      ;;
-    infrastructure/nginx/* | infrastructure/scripts/deploy-staging.sh)
-      add_image api
-      add_image web-user
-      add_image web-admin
-      ;;
-  esac
+# Changed packages plus everything depending on them.
+affected_packages() {
+  pnpm exec turbo run build --dry-run=json --filter="...[$base]" | jq -r '.packages[]'
 }
 
-for app in "${VALID_APPS[@]}"; do
-  if echo "$CHANGED_PACKAGES" | grep -q "^@repo/${app}$"; then
-    add_image "$app"
+# One app per line, may repeat.
+affected_apps() {
+  if grep -qxE "$root_build_files" <<<"$files"; then
+    all_apps
+    return
   fi
-done
 
-backend_changed=false
-for app in "${BACKEND_APPS[@]}"; do
-  if echo "$CHANGED_PACKAGES" | grep -q "^@repo/${app}$"; then
-    backend_changed=true
-    break
+  local packages app
+  packages="$(affected_packages)"
+  for app in $(all_apps); do
+    if grep -qx "@repo/$app" <<<"$packages"; then
+      echo "$app"
+    fi
+  done
+
+  if grep -qxE "$openapi_schema" <<<"$files"; then
+    printf '%s\n' web-user web-admin
   fi
-done
+}
 
-if [[ "$backend_changed" == "true" ]] ||
-  echo "$CHANGED_PACKAGES" | grep -q "^@repo/database$" ||
-  echo "$CHANGED_FILES" | grep -Eq '^(packages/database/|infrastructure/docker/services/migrator\.yml|packages/database/migrator/)'; then
-  add_image migrator
-fi
+# Lines in, sorted unique JSON array out.
+to_json_array() {
+  jq -Rnc '[inputs | select(. != "")] | unique'
+}
 
-while IFS= read -r file; do
-  [[ -n "$file" ]] && add_images_for_file "$file"
-done <<< "$CHANGED_FILES"
+code=false
+images='[]'
 
-if [[ ${#changed[@]} -eq 0 ]]; then
-  result="[]"
+if has_base; then
+  files="$(git diff --name-only "$base"...HEAD)"
+  printf 'Changed since %s:\n%s\n' "$base" "$files"
+
+  if [[ -n "$files" ]] && grep -qvxE "$docs" <<<"$files"; then
+    code=true
+    images="$(affected_apps | to_json_array)"
+  fi
 else
-  result="["
-  for image in "${changed[@]}"; do
-    [[ "$result" == "[" ]] || result+=","
-    result+="\"$image\""
-  done
-  result+="]"
+  echo "No usable base '$base': everything counts as changed."
+  code=true
+  images="$(all_apps | to_json_array)"
 fi
 
-echo "==> Changed release images: $result"
+echo "code=$code"
+echo "images=$images"
 
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
-  echo "apps=$result" >> "$GITHUB_OUTPUT"
-  echo "base=$BASE_REF" >> "$GITHUB_OUTPUT"
+  printf 'code=%s\nimages=%s\n' "$code" "$images" >>"$GITHUB_OUTPUT"
 fi

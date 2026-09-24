@@ -1,0 +1,22 @@
+# Local development only. Staging and production live in the cinema-ops repo.
+#   pnpm docker:infra  -> postgres + redis
+#   pnpm docker:apps   -> the built app images on top of that
+#
+# Volumes and networks are declared here and referenced by the included files.
+name: cinema
+
+volumes:
+  postgres_data:
+    name: cinema-postgres-data
+  redis_data:
+    name: cinema-redis-data
+
+networks:
+  cinema:
+    name: cinema-net
+
+include:
+  - ./infra/postgres.yml
+  - ./infra/redis.yml
+  - ./apps/backend.yml
+  - ./apps/web.yml

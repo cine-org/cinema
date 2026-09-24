@@ -2,12 +2,7 @@
 
 <!-- Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. -->
 
-<!-- Title guide:
-- PR to develop:
-  -  feat(api): add user profile endpoint
-- PR develop -> main:
-  - release: prepare vX.Y.Z
--->
+<!-- Title: Conventional Commits, it becomes the squash commit on main, e.g. feat(api): add user profile endpoint -->
 
 ## Related Issues
 
@@ -30,10 +25,8 @@
 <!-- Check what should happen after this PR. -->
 
 - [ ] CI only
-- [ ] Deploys to staging after merge to develop
-- [ ] Release checkpoint PR to main
-- [ ] Requires manual release
-- [ ] Requires manual deploy
+- [ ] Changes app images (deployed after merge)
+- [ ] Needs a DB migration
 - [ ] No runtime impact
 
 ## Checklist:

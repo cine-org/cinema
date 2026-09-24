@@ -8,7 +8,7 @@ Purpose: keep GitHub Issues small enough to become PRs.
 - Scope and non-goals.
 - Acceptance criteria.
 - Test notes.
-- Target workflow impact when relevant: CI, staging, release, or deploy.
+- Target workflow impact when relevant: CI or delivery.
 
 ## Labels
 
@@ -47,21 +47,6 @@ Closes #123
 Refs #130
 ```
 
-## Workflow Mapping
+## Workflow
 
-- Feature/bug/chore issues usually become a PR into `develop`.
-- PR into `develop` runs [CI](../workflow/ci.md).
-- After merge, `develop` triggers [Staging](../workflow/staging.md).
-- Sprint/release checkpoint issues become PRs from `develop` into `main`.
-- After `main` merge, [Release](../workflow/release.md) and [Deploy](../workflow/deploy.md) are manual.
-
-## Issue Types And Target
-
-| Issue type | Normal PR target | After merge                               |
-| ---------- | ---------------- | ----------------------------------------- |
-| Feature    | `develop`        | staging                                   |
-| Bug        | `develop`        | staging                                   |
-| Refactor   | `develop`        | staging                                   |
-| Infra/CI   | `develop`        | staging or workflow only                  |
-| Docs       | `develop`        | no deploy unless workflow/infra docs only |
-| Release    | `main`           | manual release/deploy                     |
+Every issue becomes a PR into `main`, gated by [CI](../workflow/ci.md).

@@ -24,6 +24,7 @@
     "db:seed": "dotenv -e ../../.env -- prisma db seed",
     "db:studio": "dotenv -e ../../.env -- prisma studio",
     "db:test:deploy": "dotenv -e ../../.env.test -- prisma migrate deploy",
+    "db:test:check": "dotenv -e ../../.env.test -- prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code",
     "db:test:reset": "dotenv -e ../../.env.test -- prisma migrate reset --force",
     "db:test:seed": "dotenv -e ../../.env.test -- prisma db seed",
     "test": "pnpm test:unit",

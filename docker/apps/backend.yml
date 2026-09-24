@@ -1,0 +1,54 @@
+# Node services. They share everything except the Dockerfile and the exposed port,
+# so the shared block lives here as an anchor: anchors do not cross `include:`.
+x-backend: &backend
+  profiles: [apps]
+  environment:
+    NODE_ENV: development
+    # Writes use the superuser; reads use cinema_ro from infra/postgres/roles.sql.
+    DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    DATABASE_URL_RO: postgresql://cinema_ro:cinema_ro@postgres:5432/${POSTGRES_DB}
+    # Override the host-facing URLs from the app .env: inside a container
+    # localhost is the container itself.
+    REDIS_URL: redis://redis:6379
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  networks: [cinema]
+  restart: unless-stopped
+
+services:
+  api:
+    <<: *backend
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    env_file:
+      - ../../apps/api/.env
+    ports:
+      - '3000:3000'
+
+  worker:
+    <<: *backend
+    build:
+      context: ../..
+      dockerfile: apps/worker/Dockerfile
+    env_file:
+      - ../../apps/worker/.env
+
+  scheduler:
+    <<: *backend
+    build:
+      context: ../..
+      dockerfile: apps/scheduler/Dockerfile
+    env_file:
+      - ../../apps/scheduler/.env
+
+  integration:
+    <<: *backend
+    build:
+      context: ../..
+      dockerfile: apps/integration/Dockerfile
+    env_file:
+      - ../../apps/integration/.env

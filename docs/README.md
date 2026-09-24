@@ -9,7 +9,7 @@ Purpose: quick context for humans and AI agents working in this repo.
 - [Workspace](setup/workspace.md): first local setup.
 - [Root Scripts](setup/package-json.md): common commands.
 - [Local Testing](tooling/local-testing.md): unit, integration, e2e local flow.
-- [CI](workflow/ci.md), [Staging](workflow/staging.md), [Release](workflow/release.md), [Deploy](workflow/deploy.md): delivery lifecycle.
+- [CI](workflow/ci.md): PR checks.
 
 ## Repo Areas
 
@@ -17,18 +17,16 @@ Purpose: quick context for humans and AI agents working in this repo.
 - `modules/*`: backend business modules imported by apps.
 - `packages/*`: shared libraries and generated clients.
 - `tooling/*`: shared config packages.
-- `infrastructure/*`: Docker, nginx, and VPS deploy scripts.
+- `docker/*`: local development containers only.
 
 ## Current Delivery Model
 
 ```text
-PR -> CI
-develop push -> staging latest deploy
-manual release -> versioned images + GitHub Release
-manual deploy -> release artifact deploy
+<type>/<issue>/<summary> -> main -> staging -> (release) production
 ```
 
-Deploys do not git-pull on the VPS. GitHub Actions uploads `deploy-artifact.tar.gz`; the VPS extracts it under `/opt/cinema/releases/<id>` and updates `/opt/cinema/current`.
+This repo builds images and opens PRs against `cinema-ops`; Argo CD in each cluster deploys what
+`cinema-ops` declares. GitHub Actions never touches a cluster.
 
 ## Keep Docs Small
 

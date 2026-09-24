@@ -1,0 +1,26 @@
+# Next.js images served on port 3000 inside the container.
+x-web: &web
+  profiles: [apps]
+  networks: [cinema]
+  restart: unless-stopped
+
+services:
+  web-user:
+    <<: *web
+    build:
+      context: ../..
+      dockerfile: apps/web-user/Dockerfile
+    env_file:
+      - ../../apps/web-user/.env
+    ports:
+      - '4000:3000'
+
+  web-admin:
+    <<: *web
+    build:
+      context: ../..
+      dockerfile: apps/web-admin/Dockerfile
+    env_file:
+      - ../../apps/web-admin/.env
+    ports:
+      - '4001:3000'

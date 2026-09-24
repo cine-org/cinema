@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-cinema}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/roles.sql:/roles.sql:ro
+    # Applies roles on every start, so existing volumes pick up new roles too; roles.sql is idempotent.
+    # Waits on TCP: the temporary server initdb runs listens on the socket only.
+    post_start:
+      - command: >-
+          sh -c 'until pg_isready -h 127.0.0.1 -U "$$POSTGRES_USER" -q; do sleep 1; done;
+          psql -h 127.0.0.1 -v ON_ERROR_STOP=1 -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -f /roles.sql'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-cinema}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    networks: [cinema]
+    restart: unless-stopped
