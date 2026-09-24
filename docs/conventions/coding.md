@@ -11,7 +11,7 @@ Purpose: repo-wide code style and architectural guardrails.
 
 ## Boundaries
 
-- Use workspace imports: `@repo/database`, `@repo/contracts`, etc.
+- Use workspace imports: `@repo/database`, `@repo/common`, etc.
 - Use app-local alias `@/*` only inside that app/package.
 - Do not cross package boundaries with deep relative imports.
 - Do not import app code from modules or packages.
@@ -21,7 +21,9 @@ Purpose: repo-wide code style and architectural guardrails.
 - Controllers adapt transport input/output.
 - Services/application handlers own use-case logic.
 - Domain code should not throw Nest `HttpException`.
-- Use shared app exceptions from `modules/shared` for business errors.
+- Request DTOs validate with `class-validator`; the global `RequestValidationPipe` turns failures into `VALIDATION` errors with `field`.
+- Use shared app exceptions from `modules/common` for business errors.
+- No side effects at import (env parsing, connections); do them at bootstrap so tooling like OpenAPI generation can load modules.
 
 ## Frontend
 

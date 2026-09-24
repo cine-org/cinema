@@ -1,41 +1,33 @@
-import { INestApplication, RequestMethod, VersioningType } from '@nestjs/common';
+import { Logger, type INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { GlobalExceptionFilter } from '@/common/filters';
+import { setupHttp, setupLogger, setupSwagger } from '@/bootstrap';
 import { ConfigService } from '@/config';
-import { setupSwagger } from '@/openapi';
 import { AppModule } from '@/app.module';
 
 async function bootstrap() {
-  const app: INestApplication = await NestFactory.create(AppModule);
+  const app: INestApplication = await NestFactory.create(AppModule, {
+    // Held until setupLogger applies LOG_LEVEL, then flushed.
+    bufferLogs: true,
+  });
 
   const configService = app.get(ConfigService);
   const { app: appConfig } = configService;
+
+  setupLogger(app, appConfig.logLevel);
 
   app.enableCors({
     origin: appConfig.corsOrigins,
     credentials: true,
   });
 
-  app.setGlobalPrefix(appConfig.apiPrefix, {
-    exclude: [
-      {
-        path: 'health',
-        method: RequestMethod.ALL,
-      },
-    ],
-  });
-  app.enableVersioning({
-    type: VersioningType.URI,
-    defaultVersion: '1',
-  });
-  app.useGlobalFilters(new GlobalExceptionFilter());
+  setupHttp(app);
 
   setupSwagger(app, configService);
 
-  await app.listen(appConfig.port);
+  await app.listen(appConfig.apiPort);
 }
 
 bootstrap().catch((err) => {
-  console.log(err);
+  new Logger('Bootstrap').error(err);
   process.exit(1);
 });

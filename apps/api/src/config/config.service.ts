@@ -1,17 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { type AppConfig, appConfig } from './app.config';
-import { type DbConfig, dbConfig } from './db.config';
+import { type AppConfig, createAppConfig } from './app.config';
+import { type DbConfig, createDbConfig } from './db.config';
+import { loadEnv } from './env';
 
 @Injectable()
 export class ConfigService {
-  readonly app: AppConfig = appConfig;
-  readonly db: DbConfig = dbConfig;
+  readonly app: AppConfig;
+  readonly db: DbConfig;
+
+  constructor() {
+    const env = loadEnv();
+    this.app = createAppConfig(env);
+    this.db = createDbConfig(env);
+  }
 
   get isProduction() {
     return this.app.nodeEnv === 'production';
-  }
-
-  get isDevelopment() {
-    return this.app.nodeEnv === 'development';
   }
 }

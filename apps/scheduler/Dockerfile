@@ -32,4 +32,5 @@ FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /deploy .
+USER node
 CMD ["node", "dist/main"]

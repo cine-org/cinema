@@ -1,7 +1,10 @@
-import { env } from './env';
+import type { Env } from './env';
 
-export const dbConfig = Object.freeze({
-  url: env.DATABASE_URL,
-});
+export function createDbConfig(env: Env) {
+  return Object.freeze({
+    url: env.DATABASE_URL,
+    readUrl: env.DATABASE_URL_RO,
+  });
+}
 
-export type DbConfig = typeof dbConfig;
+export type DbConfig = ReturnType<typeof createDbConfig>;

@@ -1,7 +1,7 @@
-import {
-  PaginatedResponse as IPaginatedResponse,
-  PaginationMeta as IPaginationMeta,
-} from '@repo/contracts';
+import { applyDecorators, HttpCode, HttpStatus, type Type } from '@nestjs/common';
+import { ApiExtraModels, ApiProperty, ApiResponse } from '@nestjs/swagger';
+import type { Page } from '@repo/common';
+import { envelopeSchema, listOf, ResponseEnvelope } from './response-envelope';
 
 export type PaginationMetaInput = {
   readonly page: number;
@@ -9,12 +9,23 @@ export type PaginationMetaInput = {
   readonly total: number;
 };
 
-export class PaginationMeta implements IPaginationMeta {
+export class PaginationMeta {
+  @ApiProperty({ example: 42 })
   readonly total: number;
+
+  @ApiProperty({ example: 1 })
   readonly page: number;
+
+  @ApiProperty({ example: 20 })
   readonly limit: number;
+
+  @ApiProperty({ example: 3 })
   readonly totalPages: number;
+
+  @ApiProperty({ example: true })
   readonly hasNextPage: boolean;
+
+  @ApiProperty({ example: false })
   readonly hasPreviousPage: boolean;
 
   private constructor(input: PaginationMetaInput) {
@@ -50,11 +61,20 @@ type PaginatedResponseProps<T> = {
   readonly message?: string;
 };
 
-export class PaginatedResponse<T> implements IPaginatedResponse<T> {
+export class PaginatedResponse<T> {
+  @ApiProperty({ type: Boolean, enum: [true] })
   readonly success = true;
+
+  // Documented per route by @ApiPaginated.
   readonly data: T[];
+
+  @ApiProperty({ type: PaginationMeta })
   readonly meta: PaginationMeta;
+
+  @ApiProperty({ example: 'OK' })
   readonly message: string;
+
+  @ApiProperty({ format: 'date-time' })
   readonly timestamp: string;
 
   private constructor({ data, meta, message = 'OK' }: PaginatedResponseProps<T>) {
@@ -81,4 +101,27 @@ export class PaginatedResponse<T> implements IPaginatedResponse<T> {
       message,
     });
   }
+
+  // A module's Page into this contract: items → data, the rest → meta.
+  static fromPage<T>({ items, ...meta }: Page<T>): PaginatedResponse<T> {
+    return PaginatedResponse.of({ data: items, ...meta });
+  }
+}
+
+type ApiPaginatedOptions = {
+  readonly description?: string;
+};
+
+// Documents `PaginatedResponse<Dto>`; the route returns `Page<Dto>` from @repo/common.
+export function ApiPaginated(dto: Type, { description }: ApiPaginatedOptions = {}) {
+  return applyDecorators(
+    ResponseEnvelope('paginated'),
+    HttpCode(HttpStatus.OK),
+    ApiExtraModels(PaginatedResponse, dto),
+    ApiResponse({
+      status: HttpStatus.OK,
+      description,
+      schema: envelopeSchema(PaginatedResponse, listOf(dto)),
+    }),
+  );
 }

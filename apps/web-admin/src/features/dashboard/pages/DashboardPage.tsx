@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { config } from '@/config';
 
-const getApiHealthUrl = () => new URL('/health', config.apiBaseUrl).toString();
+const getApiHealthUrl = () => new URL('/health', config.apiOrigin).toString();
 
 export const DashboardPage = () => {
   useEffect(() => {

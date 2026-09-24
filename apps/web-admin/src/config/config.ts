@@ -1,10 +1,5 @@
-type Config = {
-  apiBaseUrl: string;
-};
-
 type RuntimeConfig = {
   apiOrigin?: string;
-  apiPrefix?: string;
 };
 
 declare global {
@@ -13,14 +8,13 @@ declare global {
   }
 }
 
-const apiOrigin =
-  (typeof window !== 'undefined' ? window.__APP_CONFIG__?.apiOrigin?.trim() : undefined) ||
-  (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000');
+type Config = {
+  apiOrigin: string;
+};
 
-const apiPrefix =
-  (typeof window !== 'undefined' ? window.__APP_CONFIG__?.apiPrefix?.trim() : undefined) ||
-  '/api/v1';
-
+// Only the origin: generated api-client paths already carry `/api/v1`.
 export const config: Config = {
-  apiBaseUrl: new URL(apiPrefix, apiOrigin).toString(),
+  apiOrigin:
+    (typeof window !== 'undefined' ? window.__APP_CONFIG__?.apiOrigin?.trim() : undefined) ||
+    (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'),
 };

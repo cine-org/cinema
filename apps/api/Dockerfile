@@ -32,5 +32,9 @@ FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /deploy .
+# The image is also the migrator: a Job runs `node_modules/.bin/prisma migrate deploy` with the owner role.
+COPY --from=builder /repo/packages/database/prisma ./prisma
+COPY --from=builder /repo/packages/database/prisma.config.ts ./prisma.config.ts
+USER node
 EXPOSE 3000
 CMD ["node", "dist/main"]

@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@repo/api-client": "workspace:*",
-    "@repo/contracts": "workspace:*",
     "@repo/utils": "workspace:*",
     "clsx": "^2.1.1",
     "next": "^15.1.0",

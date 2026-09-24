@@ -2,24 +2,25 @@ import { z } from 'zod';
 
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  API_PORT: z.coerce.number().default(3000),
   API_ORIGIN: z.url().optional(),
-  API_PREFIX: z.string().default('/api'),
-  PORT: z.coerce.number().default(3000),
   CORS_ORIGINS: z.string().default(''),
-  ENABLE_SWAGGER: z.coerce.boolean().default(false),
+  ENABLE_SWAGGER: z.stringbool().default(false),
   LOG_LEVEL: z.enum(['log', 'error', 'warn', 'debug', 'verbose']).default('log'),
 
   DATABASE_URL: z.url(),
+  // Read-only role; unset means reads share DATABASE_URL.
+  DATABASE_URL_RO: z.url().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
 
-const parsed = envSchema.safeParse(process.env);
-if (!parsed.success) {
-  console.error('Invalid environment variables');
-  const tree = z.treeifyError(parsed.error);
-  console.error(JSON.stringify(tree, null, 2));
-  process.exit(1);
+// Called at bootstrap, never at import, so tooling can load modules without env.
+export function loadEnv(): Env {
+  const parsed = envSchema.safeParse(process.env);
+  if (!parsed.success) {
+    const tree = JSON.stringify(z.treeifyError(parsed.error), null, 2);
+    throw new Error(`Invalid environment variables\n${tree}`);
+  }
+  return Object.freeze(parsed.data);
 }
-
-export const env: Env = Object.freeze(parsed.data);

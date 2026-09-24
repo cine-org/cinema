@@ -1,5 +1,18 @@
-import { COMMON_ERROR_CODE, type ErrorDetail } from '@repo/contracts';
-import type { ErrorResponse as IErrorResponse } from '@repo/contracts';
+import { ApiProperty, ApiPropertyOptional, ApiSchema } from '@nestjs/swagger';
+import { COMMON_ERROR_CODE, type ErrorDetail } from '@repo/common';
+
+// Swagger-only mirror of ErrorDetail, which is a plain type.
+@ApiSchema({ name: 'ErrorDetail' })
+class ErrorDetailSchema implements ErrorDetail {
+  @ApiPropertyOptional({ example: 'email' })
+  readonly field?: string;
+
+  @ApiProperty({ example: 'Invalid email' })
+  readonly message!: string;
+
+  @ApiPropertyOptional({ example: 'invalid_format' })
+  readonly code?: string;
+}
 
 export type ErrorResponseInput = {
   readonly message: string;
@@ -15,12 +28,23 @@ type ErrorResponseProps = {
   readonly requestId?: string;
 };
 
-export class ErrorResponse implements IErrorResponse {
+export class ErrorResponse {
+  @ApiProperty({ type: Boolean, enum: [false] })
   readonly success = false;
+
+  @ApiProperty({ example: 'Request timed out' })
   readonly message: string;
+
+  @ApiProperty({ example: 'REQUEST_TIMEOUT' })
   readonly code: string;
+
+  @ApiPropertyOptional({ type: [ErrorDetailSchema] })
   readonly errors?: ErrorDetail[];
+
+  @ApiProperty({ format: 'date-time' })
   readonly timestamp: string;
+
+  @ApiPropertyOptional()
   readonly requestId?: string;
 
   private constructor({ message, code, errors, requestId }: ErrorResponseProps) {

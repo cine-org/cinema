@@ -1,6 +1,6 @@
 # Prisma
 
-Purpose: database schema, migrations, generated Prisma client, and seed flow.
+Purpose: database schema, migrations, and generated Prisma client.
 
 ## Source Of Truth
 
@@ -38,24 +38,26 @@ pnpm db:test:deploy
 pnpm db:test:seed
 ```
 
-Test DB uses `.env.test`.
+Dev DB uses `packages/database/.env`, test DB uses `packages/database/.env.test`.
+
+## Seed
+
+- Each module owns its seed in `modules/<name>/seed/`, built from its own handlers (e.g. real argon2 hashes).
+- `pnpm db:seed` loads `packages/database/.env` and runs every module's `db:seed` through Turbo, dependencies first.
+- Seeds are dev/test data only and never run in production; they must be safe to repeat.
+- Reference data every environment needs (genres, seat types...) goes in a migration, not a seed.
+- `pnpm db:reset` no longer seeds; run `pnpm db:seed` after it.
 
 ## Deploy
 
-Production/staging migrations run through the `migrator` image before backend deploys.
-
-Do not run these in production:
-
-```bash
-pnpm db:migrate
-pnpm db:push
-pnpm db:reset
-```
-
-Use deploy migration only:
+The api image is also the migrator: it carries `prisma/` and `prisma.config.ts`. Before the api rolls
+out, a Job runs it with the owner role's `DATABASE_URL`:
 
 ```bash
-pnpm db:deploy
+node_modules/.bin/prisma migrate deploy
 ```
+
+The api container itself keeps the `cinema_rw` / `cinema_ro` URLs, so it can never run DDL.
+Never run `db:migrate`, `db:push` or `db:reset` against staging or production.
 
 Related: [Docker](../../infra/docker.md), [Local Testing](../../tooling/local-testing.md)

@@ -32,13 +32,15 @@ RUN --mount=type=cache,id=turbo-web-user,target=/repo/.turbo \
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=80
+ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-COPY --from=builder /repo/apps/web-user/public ./apps/web-user/public
-COPY --from=builder /repo/apps/web-user/.next/standalone ./
-COPY --from=builder /repo/apps/web-user/.next/static ./apps/web-user/.next/static
+# Owned by node so Next can write .next/cache (image optimization, ISR) at runtime.
+COPY --from=builder --chown=node:node /repo/apps/web-user/public ./apps/web-user/public
+COPY --from=builder --chown=node:node /repo/apps/web-user/.next/standalone ./
+COPY --from=builder --chown=node:node /repo/apps/web-user/.next/static ./apps/web-user/.next/static
 
-EXPOSE 80
+USER node
+EXPOSE 3000
 
 CMD ["node", "apps/web-user/server.js"]
