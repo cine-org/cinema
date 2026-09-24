@@ -20,7 +20,7 @@ Local dev uses normal `.env` files:
 
 ```bash
 cp .env.example .env
-cp infrastructure/docker/.env.example infrastructure/docker/.env
+cp docker/.env.example docker/.env
 cp apps/api/.env.example apps/api/.env
 cp apps/web-user/.env.example apps/web-user/.env
 cp apps/web-admin/.env.example apps/web-admin/.env

@@ -63,9 +63,10 @@ pnpm db:test:seed
 ## Docker
 
 ```bash
-pnpm docker:infra
-pnpm docker:up
+pnpm docker:infra      # postgres + redis
+pnpm docker:apps       # app images on top (profile apps)
 pnpm docker:down
+pnpm docker:reset      # also drops volumes
 pnpm docker:logs
 pnpm docker:test:up
 pnpm docker:test:down

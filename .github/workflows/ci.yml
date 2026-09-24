@@ -2,105 +2,139 @@ name: CI
 
 permissions:
   contents: read
-  pull-requests: read
 
 concurrency:
-  group: ci-pr-${{ github.event.pull_request.number || github.run_id }}
+  group: ci-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 on:
   pull_request:
-    branches: [main, develop]
 
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
 
 jobs:
-  filter:
+  changes:
+    name: changes
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
-      quality: ${{ steps.filter.outputs.quality }}
-      integration: ${{ steps.filter.outputs.integration }}
+      code: ${{ steps.changes.outputs.code }}
+      images: ${{ steps.changes.outputs.images }}
     steps:
+      - name: Warn about missing Turbo remote cache
+        if: env.TURBO_TOKEN == '' || env.TURBO_TEAM == ''
+        run: echo "::warning::TURBO_TOKEN or TURBO_TEAM is missing; CI runs without remote cache."
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - id: filter
-        name: Detect CI impact
-        run: bash .github/scripts/ci-filter.sh "${{ github.event.pull_request.base.sha }}"
+      - uses: ./.github/actions/setup
 
-  quality:
-    name: Lint / Typecheck / Unit
+      - name: Detect changes
+        id: changes
+        run: bash .github/scripts/detect-changes.sh "${{ github.event.pull_request.base.sha }}"
+
+  lint:
+    name: lint
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    needs: filter
-    if: needs.filter.outputs.quality == 'true'
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./.github/actions/setup-node-pnpm
+      - uses: ./.github/actions/setup
 
-      - name: Check Turbo remote cache credentials
-        run: |
-          if [[ -z "$TURBO_TOKEN" || -z "$TURBO_TEAM" ]]; then
-            echo "::warning::Turbo remote cache credentials are missing; quality checks will continue without remote cache."
-          else
-            echo "Turbo remote cache credentials are configured."
-          fi
+      - name: Format
+        run: pnpm format:check
 
-      - name: Create test env
-        run: |
-          cat > .env.test <<'EOF'
-          NODE_ENV=test
-          DATABASE_URL=postgresql://postgres:postgres@localhost:5432/cinema_test
-          REDIS_URL=redis://localhost:6379
-          EOF
+      - name: OpenAPI schema is committed
+        run: pnpm openapi:check
 
-      - name: Run quality checks
-        run: bash .github/scripts/ci-quality.sh
+      - name: Generate API client
+        run: pnpm openapi:generate:types
 
-  integration:
-    name: Integration / E2E
+      - name: Lint
+        run: pnpm lint
+
+  test:
+    name: test
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
-    needs: filter
-    if: needs.filter.outputs.integration == 'true'
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: cinema_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d cinema_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./.github/actions/setup-node-pnpm
+      - uses: ./.github/actions/setup
 
       - name: Create test env
-        run: |
-          cat > .env.test <<'EOF'
-          NODE_ENV=test
-          DATABASE_URL=postgresql://postgres:postgres@localhost:5432/cinema_test
-          REDIS_URL=redis://localhost:6379
-          EOF
+        # Every package that needs test env ships its own `.env.test.example`.
+        run: for f in $(git ls-files '*.env.test.example'); do cp "$f" "${f%.example}"; done
 
-      - name: Run integration checks
-        run: bash .github/scripts/ci-integration.sh
+      - name: Start test infra
+        run: pnpm docker:test:up
+
+      - name: Migrate test database
+        run: pnpm db:test:deploy
+
+      - name: Migrations match Prisma schema
+        run: pnpm db:test:check
+
+      - name: Unit test
+        run: pnpm test
+
+      - name: Integration test
+        run: pnpm test:int
+
+      - name: E2E test
+        run: pnpm test:e2e
+
+  build:
+    name: build
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: Build
+        run: pnpm build
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+  docker:
+    name: docker (${{ matrix.app }})
+    needs: changes
+    if: needs.changes.outputs.images != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.changes.outputs.images) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/docker-build
+        with:
+          app: ${{ matrix.app }}
+
+  # The only check the ruleset requires. Skipped jobs count as passed, so docs-only PRs still go green.
+  ci:
+    name: ci
+    needs: [changes, lint, test, build, docker]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fail if any job failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1

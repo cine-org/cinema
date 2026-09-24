@@ -34,9 +34,8 @@ labels: bug
 
 ## Workflow Target
 
-- [ ] Fix through PR to develop
-- [ ] Needs staging verification
-- [ ] Needs release/deploy after main merge
+- [ ] Needs staging verification after merge
+- [ ] Needs a production release
 
 ## Related
 

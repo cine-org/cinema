@@ -9,7 +9,7 @@ apps/            runnable apps and Docker images
 modules/         backend business modules
 packages/        shared libraries, clients, contracts
 tooling/         eslint, tsconfig, jest, vitest presets
-infrastructure/  docker, nginx, deploy runtime scripts
+docker/          local development containers
 docs/            short project references
 ```
 
@@ -57,10 +57,8 @@ domain code -> Nest HTTP exceptions
 - API client types: generated in `packages/api-client/src/generated`.
 - Database schema: `packages/database/prisma/schema.prisma`.
 - Deploy images: GHCR.
-- Release deploy: GitHub Release `release-manifest.yml` + `deploy-artifact.tar.gz`.
 
 ## Related
 
 - [Docker](../infra/docker.md)
 - [CI](../workflow/ci.md)
-- [Release](../workflow/release.md)

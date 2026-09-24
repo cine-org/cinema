@@ -21,9 +21,8 @@ labels: chore
 ## Workflow Target
 
 - [ ] CI only
-- [ ] PR to develop
-- [ ] Staging deploy after merge
-- [ ] Release/deploy task
+- [ ] Changes app images
+- [ ] Needs staging verification after merge
 
 ## Notes
 

@@ -23,9 +23,8 @@ labels: enhancement
 
 ## Workflow Target
 
-- [ ] PR to develop
 - [ ] Staging verification after merge
-- [ ] Include in next release checkpoint
+- [ ] Include in the next production release
 
 ## Additional Context
 

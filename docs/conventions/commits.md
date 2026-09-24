@@ -15,7 +15,6 @@ feat(api): add user profile endpoint
 fix(web-user): fix runtime config fallback
 ci: split quality and integration jobs
 docs: update deploy artifact flow
-release: prepare v0.1.0
 ```
 
 ## Types
@@ -25,10 +24,9 @@ release: prepare v0.1.0
 - `refactor`: behavior-preserving code change.
 - `test`: tests only.
 - `docs`: documentation only.
-- `ci`: GitHub Actions, release, deploy.
+- `ci`: GitHub Actions and delivery workflows.
 - `chore`: maintenance, dependencies, config.
 - `build`: build system or packaging.
-- `release`: release checkpoint PR from `develop` into `main`.
 - `revert`: revert previous commit.
 
 ## Breaking Change

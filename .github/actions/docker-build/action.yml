@@ -1,0 +1,33 @@
+name: Docker build
+description: Build one app image with Buildx and the GitHub Actions cache, optionally pushing it.
+
+inputs:
+  app:
+    description: App folder under apps/.
+    required: true
+  push:
+    description: Push the image (requires a registry login beforehand).
+    default: 'false'
+  tags:
+    description: Image tags, one per line.
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - uses: docker/setup-buildx-action@v3
+
+    - uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: apps/${{ inputs.app }}/Dockerfile
+        push: ${{ inputs.push }}
+        tags: ${{ inputs.tags }}
+        labels: |
+          org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          org.opencontainers.image.revision=${{ github.sha }}
+        build-args: |
+          TURBO_TOKEN=${{ env.TURBO_TOKEN }}
+          TURBO_TEAM=${{ env.TURBO_TEAM }}
+        cache-from: type=gha,scope=${{ inputs.app }}
+        cache-to: type=gha,mode=max,scope=${{ inputs.app }}

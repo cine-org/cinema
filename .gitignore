@@ -42,7 +42,13 @@ temp/
 .idea/
 .cursor/
 .antigravity/
+
+# AI agents
 .claude/
+.codex/
+AGENTS.md
+CLAUDE.md
+openspec/
 
 # os
 .DS_Store
