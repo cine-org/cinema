@@ -53,4 +53,4 @@ running or red, so a broken staging is fixed before more changes land.
 
 Images are pushed with the workflow's own `GITHUB_TOKEN` (`packages: write`).
 
-Related: [CI](ci.md), [Rulesets](../conventions/rulesets.md)
+Related: [CI](ci.md), [Release](release.md), [Rulesets](../conventions/rulesets.md)
