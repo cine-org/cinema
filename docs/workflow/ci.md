@@ -20,8 +20,10 @@ Every pull request, whatever the base branch; draft PRs run too. Pushing a branc
 ```text
 changes ─┬─ lint ────────┐
          ├─ test ────────┤
-         ├─ build ───────┼─ ci (gate)
-         └─ docker (app) ┘
+         ├─ build ───────┤
+         └─ docker (app) ┼─ ci (gate)
+branch ──────────────────┤          (PRs into main only)
+staging ─────────────────┘          (PRs into main only)
 ```
 
 | Job            | Runs when             | Steps                                                                |
@@ -31,6 +33,8 @@ changes ─┬─ lint ────────┐
 | `test`         | `code`                | test Postgres/Redis, `db:test:deploy`, `db:test:check`, unit/int/e2e |
 | `build`        | `code`                | `build`, `typecheck`                                                 |
 | `docker (app)` | `images` is not empty | build the app image, no push (GitHub Actions cache per app)          |
+| `branch`       | base is `main`        | fails unless the head branch is `scope/*`                            |
+| `staging`      | base is `main`        | waits for the last staging run on `main`; fails if it failed         |
 | `ci`           | always                | fails if any job above failed or was cancelled                       |
 
 `detect-changes.sh` outputs:
@@ -61,4 +65,4 @@ does not run never reports its check, and the PR waits forever.
   every `.env.test.example` copied to `.env.test`.
 - Every check is a root `pnpm` script, so it can be run locally the same way.
 
-Related: [Local Testing](../tooling/local-testing.md)
+Related: [Local Testing](../tooling/local-testing.md), [Staging](staging.md)

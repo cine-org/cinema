@@ -127,10 +127,44 @@ jobs:
         with:
           app: ${{ matrix.app }}
 
+  # Only scope branches merge into main; feature branches merge into their scope.
+  branch:
+    name: branch
+    if: github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Head branch is scope/*
+        if: ${{ !startsWith(github.head_ref, 'scope/') }}
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          echo "::error::Only scope/* can merge into main, got '$HEAD_REF'."
+          exit 1
+
+  # Blocks scope -> main while the last staging run is still running or has failed.
+  staging:
+    name: staging
+    if: github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - name: Wait for the last staging run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/wait-for-staging.sh
+
   # The only check the ruleset requires. Skipped jobs count as passed, so docs-only PRs still go green.
   ci:
     name: ci
-    needs: [changes, lint, test, build, docker]
+    needs: [changes, lint, test, build, docker, branch, staging]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

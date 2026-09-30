@@ -1,0 +1,48 @@
+name: Ops PR
+description: Point apps at a new image tag in the ops repo and open a pull request, optionally merging it.
+
+inputs:
+  token:
+    description: GitHub App token with contents and pull-requests write on the ops repo.
+    required: true
+  bot-slug:
+    description: Slug of the GitHub App behind the token, used as commit author.
+    required: true
+  environment:
+    description: Target environment folder (apps/<app>/envs/<environment>).
+    required: true
+  tag:
+    description: Image tag to deploy.
+    required: true
+  apps:
+    description: JSON array of app names; apps with no folder for the environment in the ops repo are skipped.
+    required: true
+  merge:
+    description: Auto-merge the PR once the ops checks pass.
+    default: 'false'
+  ops-repo:
+    description: Ops repository.
+    default: ${{ github.repository_owner }}/cinema-ops
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.ops-repo }}
+        token: ${{ inputs.token }}
+        path: .ops
+
+    - name: Open PR
+      shell: bash
+      working-directory: .ops
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        BOT_SLUG: ${{ inputs.bot-slug }}
+        ENVIRONMENT: ${{ inputs.environment }}
+        TAG: ${{ inputs.tag }}
+        APPS: ${{ inputs.apps }}
+        MERGE: ${{ inputs.merge }}
+        IMAGE_PREFIX: ghcr.io/${{ github.repository }}
+        SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+      run: bash "$GITHUB_ACTION_PATH/ops-pr.sh"
