@@ -10,6 +10,8 @@ Purpose: quick context for humans and AI agents working in this repo.
 - [Root Scripts](setup/package-json.md): common commands.
 - [Local Testing](tooling/local-testing.md): unit, integration, e2e local flow.
 - [CI](workflow/ci.md): PR checks.
+- [Staging](workflow/staging.md): publish images and deploy to staging after each merge.
+- [Rulesets](conventions/rulesets.md): branch, tag and merge rules on GitHub.
 
 ## Repo Areas
 
