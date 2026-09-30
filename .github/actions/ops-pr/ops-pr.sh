@@ -93,8 +93,36 @@ wait_for_merge() {
   fail "$branch did not merge in time; see the PR in the ops repo."
 }
 
+# Argo CD posts argocd/<env>/<app> on the ops commit it synced (cinema-ops: infra/argocd/values.yaml).
+# Green then means the new pods run and pass their probes, not only that the PR merged.
+wait_for_rollout() {
+  local sha deadline=$((SECONDS + 600)) app state pending
+  sha="$(gh pr view "$branch" --json mergeCommit --jq .mergeCommit.oid)"
+  echo "Waiting for Argo CD on $sha: ${promoted[*]}"
+
+  while ((SECONDS < deadline)); do
+    pending=0
+    for app in "${promoted[@]}"; do
+      # Newest first: the first match is the current state.
+      state="$(CONTEXT="argocd/$ENVIRONMENT/$app" gh api "repos/{owner}/{repo}/commits/$sha/statuses" \
+        --jq '[.[] | select(.context == env.CONTEXT)][0].state // "none"')"
+      case "$state" in
+        success) ;;
+        failure | error) fail "Argo CD reports $app $state on $ENVIRONMENT; see the app in Argo CD." ;;
+        *) pending=1 ;;
+      esac
+    done
+    ((pending == 0)) && echo "Rolled out: ${promoted[*]}." && return
+    sleep 15
+  done
+  fail "Argo CD did not report ${promoted[*]} healthy in time; see the apps in Argo CD."
+}
+
 # Auto-merge waits for the ops `ci` check; merging right away is refused while it runs.
 if [[ "$MERGE" == true ]]; then
   gh pr merge "$branch" --auto --squash --delete-branch
   wait_for_merge
+  if [[ "$WAIT_ROLLOUT" == true ]]; then
+    wait_for_rollout
+  fi
 fi

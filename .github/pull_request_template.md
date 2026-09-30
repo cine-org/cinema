@@ -6,10 +6,10 @@
 
 ## Related Issues
 
-<!-- Team keywords:
-- Closes #123 = completes an issue/task
-- Fixes #123 = fixes a bug
-- Refs #123 = related only, does not close
+<!-- Only the scope/* → main PR closes the issue:
+- scope → main: Closes #123 (Fixes #123 for a bug)
+- work → scope: Refs #123
+- sync main → scope: none
 -->
 
 ## Changes
