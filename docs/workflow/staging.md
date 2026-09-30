@@ -23,14 +23,18 @@ merge into main
        publish ─▶ ghcr.io/cine-org/cinema/<app>:sha-<7>        (one job per app)
        promote ─▶ cinema-release-bot sets newTag in apps/<app>/envs/staging/kustomization.yaml
                   PR "chore(staging): deploy sha-<7>" in cinema-ops, auto-merged once its `ci` passes
-                    └─ Argo CD syncs staging
+                    └─ Argo CD syncs staging ─▶ commit status argocd/staging/<app> on the ops commit
+                  waits for success on every promoted app
 ```
 
 - A manual run (`workflow_dispatch`) has no base commit, so it publishes every app.
 - An app with no `apps/<app>/envs/staging` in cinema-ops is published but not promoted; the run
   shows a warning. Add the app in cinema-ops first to deploy it.
-- `promote` waits up to 8 minutes for the ops PR to merge and fails if its checks fail or it is
-  closed. Green means the ops PR merged, not that the rollout is healthy.
+- `promote` waits up to 8 minutes for the ops PR to merge (fails if its checks fail or it is
+  closed), then up to 10 minutes for Argo CD to post `success` for each promoted app. `failure`
+  (sync failed or app degraded) fails the run. Green means the new pods run and pass their probes.
+- The status lands on the ops commit Argo CD synced. If another ops commit merges before that
+  sync, the status goes to the newer commit and `promote` times out; re-run it.
 - Runs never cancel each other (`concurrency: staging`); GitHub keeps only the newest pending run.
 
 ## Gate on `main`
