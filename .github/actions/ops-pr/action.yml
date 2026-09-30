@@ -20,6 +20,9 @@ inputs:
   merge:
     description: Auto-merge the PR once the ops checks pass.
     default: 'false'
+  wait-rollout:
+    description: After the merge, wait for Argo CD to report each promoted app healthy (commit status argocd/<environment>/<app>).
+    default: 'false'
   ops-repo:
     description: Ops repository.
     default: ${{ github.repository_owner }}/cinema-ops
@@ -43,6 +46,7 @@ runs:
         TAG: ${{ inputs.tag }}
         APPS: ${{ inputs.apps }}
         MERGE: ${{ inputs.merge }}
+        WAIT_ROLLOUT: ${{ inputs.wait-rollout }}
         IMAGE_PREFIX: ghcr.io/${{ github.repository }}
         SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
       run: bash "$GITHUB_ACTION_PATH/ops-pr.sh"

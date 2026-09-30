@@ -69,13 +69,13 @@ jobs:
           push: 'true'
           tags: ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ needs.changes.outputs.tag }}
 
-  # Points cinema-ops at the new tags; Argo CD rolls staging out from there.
+  # Points cinema-ops at the new tags, then waits until Argo CD reports the rollout healthy.
   promote:
     name: promote
     needs: [changes, publish]
     if: needs.changes.outputs.images != '[]'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -95,3 +95,4 @@ jobs:
           tag: ${{ needs.changes.outputs.tag }}
           apps: ${{ needs.changes.outputs.images }}
           merge: 'true'
+          wait-rollout: 'true'
