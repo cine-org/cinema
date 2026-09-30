@@ -1,0 +1,150 @@
+name: Release
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+# Releases exactly what staging runs: images are re-tagged with the version, never rebuilt.
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+
+jobs:
+  # Releases only from main, and only while staging is green: a red or running staging may not be
+  # what the ops repo says it runs.
+  staging:
+    name: staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Require main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Run Release from main, not ${GITHUB_REF_NAME}."
+          exit 1
+
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - name: Wait for the last staging run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/wait-for-staging.sh
+
+  plan:
+    name: plan
+    needs: staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      commit: ${{ steps.plan.outputs.commit }}
+      images: ${{ steps.plan.outputs.images }}
+      apps: ${{ steps.plan.outputs.apps }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/create-github-app-token@v2
+        id: bot
+        with:
+          app-id: ${{ vars.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: cinema-ops
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/cinema-ops
+          token: ${{ steps.bot.outputs.token }}
+          path: .ops
+
+      - name: Plan release
+        id: plan
+        env:
+          IMAGE_PREFIX: ghcr.io/${{ github.repository }}
+        run: bash .github/scripts/release-plan.sh "${{ inputs.bump }}" .ops
+
+  retag:
+    name: retag (${{ matrix.app }})
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.images) }}
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Tag ${{ matrix.tag }} as ${{ needs.plan.outputs.version }}
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}/${{ matrix.app }}
+          VERSION: ${{ needs.plan.outputs.version }}
+          SOURCE_TAG: ${{ matrix.tag }}
+        run: docker buildx imagetools create --tag "$IMAGE:$VERSION" "$IMAGE:$SOURCE_TAG"
+
+  github-release:
+    name: github-release
+    needs: [plan, retag]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # The tag ruleset lets only the release bot create v* tags.
+      - uses: actions/create-github-app-token@v2
+        id: bot
+        with:
+          app-id: ${{ vars.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
+      - name: Create tag and release
+        env:
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.plan.outputs.version }}
+          COMMIT: ${{ needs.plan.outputs.commit }}
+        run: gh release create "$VERSION" --target "$COMMIT" --title "$VERSION" --generate-notes
+
+  promote:
+    name: promote
+    needs: [plan, github-release]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/create-github-app-token@v2
+        id: bot
+        with:
+          app-id: ${{ vars.RELEASE_BOT_APP_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: cinema-ops
+
+      # Not merged: a code owner approves production changes in the ops repo.
+      - uses: ./.github/actions/ops-pr
+        with:
+          token: ${{ steps.bot.outputs.token }}
+          bot-slug: ${{ steps.bot.outputs.app-slug }}
+          environment: production
+          tag: ${{ needs.plan.outputs.version }}
+          apps: ${{ needs.plan.outputs.apps }}
