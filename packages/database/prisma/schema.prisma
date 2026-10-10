@@ -9,15 +9,124 @@ datasource db {
 }
 
 model User {
-  id                  String      @id @default(uuid())
-  email               String?     @unique
-  isEmailVerified     Boolean     @default(false) @map("is_email_verified")
-  passwordHash        String      @map("password_hash")
-  fullName            String?     @map("full_name")
-  dateOfBirth         DateTime?   @map("date_of_birth") @db.Date
-  createdAt           DateTime    @default(now()) @map("created_at")
-  updatedAt           DateTime    @updatedAt @map("updated_at")
-  deletedAt           DateTime?   @map("deleted_at")
+  id              String    @id @default(uuid())
+  email           String?   @unique
+  isEmailVerified Boolean   @default(false) @map("is_email_verified")
+  passwordHash    String    @map("password_hash")
+  fullName        String?   @map("full_name")
+  dateOfBirth     DateTime? @map("date_of_birth") @db.Date
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
 
   @@map("users")
+}
+
+enum TheaterStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  CLOSED
+}
+
+model Theater {
+  id            String        @id @default(uuid())
+  name          String
+  slug          String        @unique
+  streetAddress String        @map("street_address")
+  ward          String
+  province      String
+  phoneNumber   String?       @map("phone_number")
+  status        TheaterStatus @default(DRAFT)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  rooms Room[]
+
+  @@map("theaters")
+}
+
+enum RoomStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  CLOSED
+}
+
+model Room {
+  id        String       @id @default(uuid())
+  theaterId String       @map("theater_id")
+  code      String
+  name      String
+  status    RoomStatus   @default(DRAFT)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  theater   Theater      @relation(fields: [theaterId], references: [id], onDelete: Restrict)
+  layouts   RoomLayout[]
+
+  // Code is unique per theater among non-closed rooms: partial index in the migration.
+  @@index([theaterId])
+  @@map("rooms")
+}
+
+enum RoomLayoutStatus {
+  DRAFT
+  PUBLISHED
+  RETIRED
+}
+
+model RoomLayout {
+  id          String           @id @default(uuid())
+  roomId      String           @map("room_id")
+  version     Int
+  gridRows    Int              @map("grid_rows")
+  gridCols    Int              @map("grid_cols")
+  status      RoomLayoutStatus @default(DRAFT)
+  publishedAt DateTime?        @map("published_at")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  room        Room             @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  seats       Seat[]
+
+  @@unique([roomId, version])
+  @@map("room_layouts")
+}
+
+model SeatType {
+  code         String   @id
+  name         String
+  maxOccupancy Int      @map("max_occupancy")
+  // Grid cells a seat of this type spans in a layout.
+  width        Int
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+  seats        Seat[]
+
+  @@map("seat_types")
+}
+
+enum SeatStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Seat {
+  id           String     @id @default(uuid())
+  layoutId     String     @map("layout_id")
+  seatTypeCode String     @map("seat_type_code")
+  // seatCode = rowLabel + 2-digit columnNumber, e.g. "A01", "B12"
+  rowLabel     String     @map("row_label")
+  columnNumber Int        @map("column_number")
+  x            Int
+  y            Int
+  status       SeatStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  layout       RoomLayout @relation(fields: [layoutId], references: [id], onDelete: Cascade)
+  seatType     SeatType   @relation(fields: [seatTypeCode], references: [code], onDelete: Restrict)
+
+  @@unique([layoutId, rowLabel, columnNumber])
+  @@unique([layoutId, y, x])
+  @@index([seatTypeCode])
+  @@map("seats")
 }
