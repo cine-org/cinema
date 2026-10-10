@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import type { UserView } from '@repo/users';
 
-export class UserResponseDto {
+export class AdminUserResponseDto {
   @ApiProperty({ format: 'uuid' })
   readonly id!: string;
 
@@ -23,7 +23,7 @@ export class UserResponseDto {
   @ApiProperty({ format: 'date-time' })
   readonly updatedAt!: string;
 
-  static from(user: UserView): UserResponseDto {
+  static from(user: UserView): AdminUserResponseDto {
     return {
       id: user.id,
       email: user.email,

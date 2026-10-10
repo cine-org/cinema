@@ -54,6 +54,8 @@ does not run never reports its check, and the PR waits forever.
 
 - `openapi:check`: regenerates `apps/api/generated/openapi/{user,admin}.json` and fails if they differ
   from the committed files. Generation also fails when a controller has neither `@UserApi` nor `@AdminApi`.
+  The schemas are marked `linguist-generated`, so GitHub collapses them in PR diffs. On a merge
+  conflict, never edit them by hand: run `pnpm openapi:generate` and commit the result.
 - `db:test:check`: after applying migrations, fails if `schema.prisma` still differs from the
   database, i.e. a schema change has no migration.
 - Docker builds catch what `build` cannot, e.g. a workspace import missing from `package.json`

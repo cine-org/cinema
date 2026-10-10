@@ -1,1 +1,1 @@
-export { UserResponseDto } from './user.response.dto';
+export { AdminUserResponseDto } from './admin-user.response.dto';
