@@ -24,7 +24,9 @@
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage --passWithNoTests"
   },
-  "dependencies": {},
+  "dependencies": {
+    "libphonenumber-js": "^1.13.13"
+  },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@repo/vitest-config": "workspace:*",

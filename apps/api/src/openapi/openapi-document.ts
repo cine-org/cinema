@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ErrorResponse } from '@/common/responses';
 
 export type OpenApiDocumentOptions = {
   readonly title?: string;
@@ -37,7 +38,10 @@ export function createOpenApiConfig({
 }
 
 export function createOpenApiDocument(app: INestApplication, options: OpenApiDocumentOptions = {}) {
-  const document = SwaggerModule.createDocument(app, createOpenApiConfig(options));
+  // No route declares ErrorResponse yet, so register it to publish the error shape and codes.
+  const document = SwaggerModule.createDocument(app, createOpenApiConfig(options), {
+    extraModels: [ErrorResponse],
+  });
 
   if (!options.serverUrl) {
     delete document.servers;

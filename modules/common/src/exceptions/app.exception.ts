@@ -1,6 +1,11 @@
-import type { ErrorDetail } from './error-detail';
+export type ErrorDetail = {
+  readonly field?: string;
+  readonly message: string;
+  readonly code?: string;
+};
 
 export type AppExceptionOptions = {
+  readonly message?: string;
   readonly details?: ErrorDetail[];
   readonly cause?: unknown;
 };
@@ -11,7 +16,7 @@ export abstract class AppException extends Error {
   readonly isOperational = true;
   override readonly cause?: unknown;
 
-  constructor(message: string, { details, cause }: AppExceptionOptions = {}) {
+  constructor(message: string, { details, cause }: Omit<AppExceptionOptions, 'message'> = {}) {
     super(message, { cause });
 
     this.name = new.target.name;

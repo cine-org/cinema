@@ -12,7 +12,7 @@ type Config = {
   apiOrigin: string;
 };
 
-// Only the origin: generated api-client paths already carry `/api/v1`.
+// Only the origin: generated sdk-admin paths already carry `/api/v1`.
 export const config: Config = {
   apiOrigin:
     (typeof window !== 'undefined' ? window.__APP_CONFIG__?.apiOrigin?.trim() : undefined) ||

@@ -1,27 +1,6 @@
 {
   "openapi": "3.0.0",
   "paths": {
-    "/health": {
-      "get": {
-        "operationId": "HealthController_check",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "API health status.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthResponseDto"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "health"
-        ]
-      }
-    },
     "/api/v1/auth/register": {
       "post": {
         "operationId": "AuthController_register_v1",
@@ -67,51 +46,6 @@
           "auth"
         ]
       }
-    },
-    "/api/v1/users/{id}": {
-      "get": {
-        "operationId": "UsersController_findById_v1",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A single user.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/SuccessResponse"
-                    },
-                    {
-                      "type": "object",
-                      "required": [
-                        "data"
-                      ],
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/UserResponseDto"
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "users"
-        ]
-      }
     }
   },
   "info": {
@@ -130,52 +64,62 @@
       }
     },
     "schemas": {
-      "HealthResponseDto": {
+      "ErrorDetail": {
         "type": "object",
         "properties": {
-          "status": {
+          "field": {
             "type": "string",
-            "example": "ok"
+            "example": "email"
+          },
+          "message": {
+            "type": "string",
+            "example": "Invalid email"
+          },
+          "code": {
+            "type": "string",
+            "example": "invalid_format"
           }
         },
         "required": [
-          "status"
+          "message"
         ]
       },
-      "SuccessResponse": {
+      "ErrorResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
             "enum": [
-              true
+              false
             ]
           },
           "message": {
             "type": "string",
-            "example": "OK"
+            "example": "Request timed out"
+          },
+          "code": {
+            "type": "string",
+            "example": "NOT_FOUND"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ErrorDetail"
+            }
           },
           "timestamp": {
             "type": "string",
             "format": "date-time"
+          },
+          "requestId": {
+            "type": "string"
           }
         },
         "required": [
           "success",
           "message",
+          "code",
           "timestamp"
-        ]
-      },
-      "RegisterResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          }
-        },
-        "required": [
-          "id"
         ]
       },
       "RegisterRequestDto": {
@@ -201,46 +145,40 @@
           "password"
         ]
       },
-      "UserResponseDto": {
+      "RegisterResponseDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
             "format": "uuid"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
           },
-          "email": {
+          "message": {
             "type": "string",
-            "nullable": true
+            "example": "OK"
           },
-          "isEmailVerified": {
-            "type": "boolean"
-          },
-          "fullName": {
-            "type": "string",
-            "nullable": true
-          },
-          "dateOfBirth": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
+          "timestamp": {
             "type": "string",
             "format": "date-time"
           }
         },
         "required": [
-          "id",
-          "email",
-          "isEmailVerified",
-          "fullName",
-          "dateOfBirth",
-          "createdAt",
-          "updatedAt"
+          "success",
+          "message",
+          "timestamp"
         ]
       }
     }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AppException, COMMON_ERROR_CODE, CommonException, ValidationException } from '../../src';
+import { AppException, COMMON_ERROR_CODE, ValidationException } from '../../src';
 
 class TestException extends AppException {
   readonly code = COMMON_ERROR_CODE.CONFLICT;
@@ -22,11 +22,11 @@ describe('AppException', () => {
   });
 });
 
-describe('CommonException', () => {
+describe('ValidationException', () => {
   it('preserves validation details, message, and cause', () => {
     const cause = new Error('invalid input');
     const details = [{ field: 'email', message: 'Invalid email' }];
-    const exception = CommonException.validation({
+    const exception = new ValidationException({
       message: 'Request validation failed',
       details,
       cause,

@@ -1,11 +1,12 @@
-import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
+import { Get, Param, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiSuccess } from '@/common/responses';
+import { AdminApi } from '@/common/surface';
 import { UserResponseDto } from './dto';
 import { UsersService } from './users.service';
 
 @ApiTags('users')
-@Controller('users')
+@AdminApi('users')
 export class UsersController {
   constructor(private readonly users: UsersService) {}
 
