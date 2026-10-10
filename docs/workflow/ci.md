@@ -26,16 +26,16 @@ branch ──────────────────┤          (PRs i
 staging ─────────────────┘          (PRs into main only)
 ```
 
-| Job            | Runs when             | Steps                                                                |
-| -------------- | --------------------- | -------------------------------------------------------------------- |
-| `changes`      | always                | warn if Turbo remote cache is missing; compute `code` and `images`   |
-| `lint`         | `code`                | `format:check`, `openapi:check`, generate API client, `lint`         |
-| `test`         | `code`                | test Postgres/Redis, `db:test:deploy`, `db:test:check`, unit/int/e2e |
-| `build`        | `code`                | `build`, `typecheck`                                                 |
-| `docker (app)` | `images` is not empty | build the app image, no push (GitHub Actions cache per app)          |
-| `branch`       | base is `main`        | fails unless the head branch is `scope/*`                            |
-| `staging`      | base is `main`        | waits for the last staging run on `main`; fails if it failed         |
-| `ci`           | always                | fails if any job above failed or was cancelled                       |
+| Job            | Runs when                             | Steps                                                                |
+| -------------- | ------------------------------------- | -------------------------------------------------------------------- |
+| `changes`      | always                                | warn if Turbo remote cache is missing; compute `code` and `images`   |
+| `lint`         | `code`                                | `format:check`, `openapi:check`, generate API client, `lint`         |
+| `test`         | `code`                                | test Postgres/Redis, `db:test:deploy`, `db:test:check`, unit/int/e2e |
+| `build`        | `code`                                | `build`, `typecheck`                                                 |
+| `docker (app)` | `images` is not empty, base is `main` | build the app image, no push (GitHub Actions cache per app)          |
+| `branch`       | base is `main`                        | fails unless the head branch is `scope/*`                            |
+| `staging`      | base is `main`                        | waits for the last staging run on `main`; fails if it failed         |
+| `ci`           | always                                | fails if any job above failed or was cancelled                       |
 
 `detect-changes.sh` outputs:
 

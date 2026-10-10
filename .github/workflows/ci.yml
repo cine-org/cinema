@@ -110,10 +110,11 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+  # Work PRs into a scope skip images: the scope PR into main builds them before anything ships.
   docker:
     name: docker (${{ matrix.app }})
     needs: changes
-    if: needs.changes.outputs.images != '[]'
+    if: needs.changes.outputs.images != '[]' && github.base_ref == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
