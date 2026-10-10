@@ -1,10 +1,24 @@
 import { HttpStatus } from '@nestjs/common';
 import { AUTH_ERROR_CODE, type AuthErrorCode } from '@repo/auth';
 import { COMMON_ERROR_CODE, type CommonErrorCode } from '@repo/common';
+import {
+  ROOM_ERROR_CODE,
+  SEAT_ERROR_CODE,
+  THEATER_ERROR_CODE,
+  type RoomErrorCode,
+  type SeatErrorCode,
+  type TheaterErrorCode,
+} from '@repo/theaters';
 import { USER_ERROR_CODE, type UserErrorCode } from '@repo/users';
 
 // Every code a module can raise; the map below must cover all of them.
-export type AppErrorCode = CommonErrorCode | AuthErrorCode | UserErrorCode;
+export type AppErrorCode =
+  | CommonErrorCode
+  | AuthErrorCode
+  | TheaterErrorCode
+  | RoomErrorCode
+  | SeatErrorCode
+  | UserErrorCode;
 
 export const ERROR_CODE_HTTP_STATUS: Record<AppErrorCode, HttpStatus> = {
   [COMMON_ERROR_CODE.BAD_REQUEST]: HttpStatus.BAD_REQUEST,
@@ -22,6 +36,35 @@ export const ERROR_CODE_HTTP_STATUS: Record<AppErrorCode, HttpStatus> = {
   [COMMON_ERROR_CODE.GATEWAY_TIMEOUT]: HttpStatus.GATEWAY_TIMEOUT,
 
   [AUTH_ERROR_CODE.EMAIL_ALREADY_EXISTS]: HttpStatus.CONFLICT,
+
+  [THEATER_ERROR_CODE.NOT_FOUND]: HttpStatus.NOT_FOUND,
+  [THEATER_ERROR_CODE.SLUG_TAKEN]: HttpStatus.CONFLICT,
+  [THEATER_ERROR_CODE.CLOSED]: HttpStatus.CONFLICT,
+  [THEATER_ERROR_CODE.IN_USE]: HttpStatus.CONFLICT,
+  [THEATER_ERROR_CODE.NOT_DRAFT]: HttpStatus.CONFLICT,
+  [THEATER_ERROR_CODE.INVALID_STATUS_TRANSITION]: HttpStatus.CONFLICT,
+
+  [ROOM_ERROR_CODE.NOT_FOUND]: HttpStatus.NOT_FOUND,
+  [ROOM_ERROR_CODE.CODE_TAKEN]: HttpStatus.CONFLICT,
+  [ROOM_ERROR_CODE.INVALID_CODE]: HttpStatus.BAD_REQUEST,
+  [ROOM_ERROR_CODE.CLOSED]: HttpStatus.CONFLICT,
+  [ROOM_ERROR_CODE.IN_USE]: HttpStatus.CONFLICT,
+  [ROOM_ERROR_CODE.NOT_DRAFT]: HttpStatus.CONFLICT,
+  [ROOM_ERROR_CODE.INVALID_STATUS_TRANSITION]: HttpStatus.CONFLICT,
+  [ROOM_ERROR_CODE.LAYOUT_NOT_FOUND]: HttpStatus.NOT_FOUND,
+  [ROOM_ERROR_CODE.LAYOUT_INVALID_GRID]: HttpStatus.BAD_REQUEST,
+  [ROOM_ERROR_CODE.LAYOUT_NOT_DRAFT]: HttpStatus.CONFLICT,
+  [ROOM_ERROR_CODE.LAYOUT_NOT_PUBLISHED]: HttpStatus.CONFLICT,
+  [ROOM_ERROR_CODE.LAYOUT_EMPTY]: HttpStatus.CONFLICT,
+
+  [SEAT_ERROR_CODE.NOT_FOUND]: HttpStatus.NOT_FOUND,
+  [SEAT_ERROR_CODE.DUPLICATE_POSITION]: HttpStatus.BAD_REQUEST,
+  [SEAT_ERROR_CODE.UNKNOWN_TYPE]: HttpStatus.BAD_REQUEST,
+  [SEAT_ERROR_CODE.INVALID_PLACEMENT]: HttpStatus.BAD_REQUEST,
+  [SEAT_ERROR_CODE.TYPE_NOT_FOUND]: HttpStatus.NOT_FOUND,
+  [SEAT_ERROR_CODE.TYPE_CODE_TAKEN]: HttpStatus.CONFLICT,
+  [SEAT_ERROR_CODE.TYPE_INVALID]: HttpStatus.BAD_REQUEST,
+  [SEAT_ERROR_CODE.TYPE_IN_USE]: HttpStatus.CONFLICT,
 
   [USER_ERROR_CODE.NOT_FOUND]: HttpStatus.NOT_FOUND,
 } as const;

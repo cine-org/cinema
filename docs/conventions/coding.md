@@ -22,6 +22,8 @@ Purpose: repo-wide code style and architectural guardrails.
 - Services/application handlers own use-case logic.
 - Domain code should not throw Nest `HttpException`.
 - Request DTOs validate with `class-validator`; the global `RequestValidationPipe` turns failures into `VALIDATION` errors with `field`.
+- Admin controllers and DTOs carry an `Admin` prefix, user ones none: Swagger keys schemas by class name, so two surfaces must not share one.
+- Paginated list queries extend `PageQueryDto` (`page`, `limit`).
 - Use shared app exceptions from `modules/common` for business errors.
 - No side effects at import (env parsing, connections); do them at bootstrap so tooling like OpenAPI generation can load modules.
 

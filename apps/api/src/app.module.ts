@@ -8,6 +8,7 @@ import { RequestValidationPipe } from '@/common/pipes';
 import { ConfigModule, ConfigService } from '@/config';
 import { HealthController } from '@/health.controller';
 import { AuthModule } from '@/modules/auth';
+import { TheatersModule } from '@/modules/theaters';
 import { UsersModule } from '@/modules/users';
 
 @Module({
@@ -22,6 +23,7 @@ import { UsersModule } from '@/modules/users';
       }),
     }),
     AuthModule,
+    TheatersModule,
     UsersModule,
   ],
   controllers: [HealthController],

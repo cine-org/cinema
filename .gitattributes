@@ -12,3 +12,5 @@
 *.jpeg binary
 *.gif binary
 *.ico binary
+
+apps/api/generated/openapi/*.json linguist-generated=true
