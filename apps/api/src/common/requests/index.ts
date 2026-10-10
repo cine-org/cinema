@@ -1,1 +1,2 @@
-export type { SortParam } from './sort.query';
+export { PageQueryDto } from './page.query';
+export { sortValues, toSortField, type SortParam } from './sort.query';

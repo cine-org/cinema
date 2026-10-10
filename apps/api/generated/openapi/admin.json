@@ -1,9 +1,1577 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/v1/admin/theaters": {
+      "post": {
+        "operationId": "AdminTheatersController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminCreateTheaterRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Theater created as a draft.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "theaters"
+        ]
+      },
+      "get": {
+        "operationId": "AdminTheatersController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "ACTIVE",
+                "INACTIVE",
+                "CLOSED"
+              ]
+            }
+          },
+          {
+            "name": "province",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Searches the theater name.",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt:desc",
+              "type": "string",
+              "enum": [
+                "name:asc",
+                "name:desc",
+                "createdAt:asc",
+                "createdAt:desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Theaters, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/PaginatedResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AdminTheaterResponseDto"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "theaters"
+        ]
+      }
+    },
+    "/api/v1/admin/theaters/slug/{slug}": {
+      "get": {
+        "operationId": "AdminTheatersController_findBySlug_v1",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A single theater by slug.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminTheaterResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "theaters"
+        ]
+      }
+    },
+    "/api/v1/admin/theaters/{id}": {
+      "get": {
+        "operationId": "AdminTheatersController_findById_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A single theater.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminTheaterResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "theaters"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminTheatersController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateTheaterRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Theater updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "theaters"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminTheatersController_delete_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft theater deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "theaters"
+        ]
+      }
+    },
+    "/api/v1/admin/theaters/{id}/activate": {
+      "post": {
+        "operationId": "AdminTheatersController_activate_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Theater activated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "theaters"
+        ]
+      }
+    },
+    "/api/v1/admin/theaters/{id}/deactivate": {
+      "post": {
+        "operationId": "AdminTheatersController_deactivate_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Theater deactivated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "theaters"
+        ]
+      }
+    },
+    "/api/v1/admin/theaters/{id}/close": {
+      "post": {
+        "operationId": "AdminTheatersController_close_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Theater closed for good.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "theaters"
+        ]
+      }
+    },
+    "/api/v1/admin/theaters/{theaterId}/rooms": {
+      "post": {
+        "operationId": "AdminRoomsController_create_v1",
+        "parameters": [
+          {
+            "name": "theaterId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminCreateRoomRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Room created as a draft.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "rooms"
+        ]
+      },
+      "get": {
+        "operationId": "AdminRoomsController_list_v1",
+        "parameters": [
+          {
+            "name": "theaterId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "ACTIVE",
+                "INACTIVE",
+                "CLOSED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rooms of a theater, by code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AdminRoomResponseDto"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "rooms"
+        ]
+      }
+    },
+    "/api/v1/admin/rooms/{id}": {
+      "get": {
+        "operationId": "AdminRoomsController_findById_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A single room.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminRoomResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "rooms"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminRoomsController_update_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateRoomRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Room updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "rooms"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminRoomsController_delete_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft room deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "rooms"
+        ]
+      }
+    },
+    "/api/v1/admin/rooms/{id}/activate": {
+      "post": {
+        "operationId": "AdminRoomsController_activate_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room activated; needs a published layout.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "rooms"
+        ]
+      }
+    },
+    "/api/v1/admin/rooms/{id}/deactivate": {
+      "post": {
+        "operationId": "AdminRoomsController_deactivate_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room deactivated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "rooms"
+        ]
+      }
+    },
+    "/api/v1/admin/rooms/{id}/close": {
+      "post": {
+        "operationId": "AdminRoomsController_close_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room closed for good.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "rooms"
+        ]
+      }
+    },
+    "/api/v1/admin/rooms/{roomId}/layouts/draft": {
+      "put": {
+        "operationId": "AdminRoomLayoutsController_upsertDraft_v1",
+        "parameters": [
+          {
+            "name": "roomId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpsertRoomLayoutRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Draft created or replaced; it is always the newest version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "room-layouts"
+        ]
+      },
+      "get": {
+        "operationId": "AdminRoomLayoutsController_findDraft_v1",
+        "parameters": [
+          {
+            "name": "roomId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The current draft with its seats.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminRoomLayoutResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "room-layouts"
+        ]
+      }
+    },
+    "/api/v1/admin/rooms/{roomId}/layouts/draft/publish": {
+      "post": {
+        "operationId": "AdminRoomLayoutsController_publishDraft_v1",
+        "parameters": [
+          {
+            "name": "roomId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Draft published; the previous published version is retired.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "room-layouts"
+        ]
+      }
+    },
+    "/api/v1/admin/rooms/{roomId}/layouts": {
+      "get": {
+        "operationId": "AdminRoomLayoutsController_list_v1",
+        "parameters": [
+          {
+            "name": "roomId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Every version, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AdminRoomLayoutSummaryResponseDto"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "room-layouts"
+        ]
+      }
+    },
+    "/api/v1/admin/rooms/{roomId}/layouts/{layoutId}": {
+      "get": {
+        "operationId": "AdminRoomLayoutsController_findById_v1",
+        "parameters": [
+          {
+            "name": "roomId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "layoutId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One version with its seats.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminRoomLayoutResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "room-layouts"
+        ]
+      }
+    },
+    "/api/v1/admin/seats/{id}/activate": {
+      "post": {
+        "operationId": "AdminSeatsController_activate_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Seat back in service.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "seats"
+        ]
+      }
+    },
+    "/api/v1/admin/seats/{id}/deactivate": {
+      "post": {
+        "operationId": "AdminSeatsController_deactivate_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Seat out of service; it can no longer be booked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "seats"
+        ]
+      }
+    },
+    "/api/v1/admin/seat-types": {
+      "post": {
+        "operationId": "AdminSeatTypesController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminCreateSeatTypeRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Seat type created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CodeResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "seat-types"
+        ]
+      },
+      "get": {
+        "operationId": "AdminSeatTypesController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Every seat type, by code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AdminSeatTypeResponseDto"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "seat-types"
+        ]
+      }
+    },
+    "/api/v1/admin/seat-types/{code}": {
+      "get": {
+        "operationId": "AdminSeatTypesController_findByCode_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A single seat type.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminSeatTypeResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "seat-types"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminSeatTypesController_update_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateSeatTypeRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Seat type updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CodeResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "seat-types"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminSeatTypesController_delete_v1",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unused seat type deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CodeResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "seat-types"
+        ]
+      }
+    },
     "/api/v1/admin/users/{id}": {
       "get": {
-        "operationId": "UsersController_findById_v1",
+        "operationId": "AdminUsersController_findById_v1",
         "parameters": [
           {
             "name": "id",
@@ -31,7 +1599,7 @@
                       ],
                       "properties": {
                         "data": {
-                          "$ref": "#/components/schemas/UserResponseDto"
+                          "$ref": "#/components/schemas/AdminUserResponseDto"
                         }
                       }
                     }
@@ -68,6 +1636,603 @@
       }
     },
     "schemas": {
+      "AdminCreateRoomRequestDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z0-9-]{1,10}$",
+            "example": "R01",
+            "description": "Unique within the theater; stored uppercase."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "example": "Phòng 1"
+          }
+        },
+        "required": [
+          "code",
+          "name"
+        ]
+      },
+      "AdminCreateSeatTypeRequestDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_]{1,20}$",
+            "example": "COUPLE",
+            "description": "Primary key; stored uppercase and never changes."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 50,
+            "example": "Couple"
+          },
+          "maxOccupancy": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 4,
+            "example": 2,
+            "description": "People one seat holds."
+          },
+          "width": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 4,
+            "example": 2,
+            "description": "Grid cells one seat spans."
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "maxOccupancy",
+          "width"
+        ]
+      },
+      "AdminCreateTheaterRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "maxLength": 100,
+            "example": "cinema-thu-duc"
+          },
+          "streetAddress": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "ward": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "province": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true,
+            "description": "Local Vietnamese or E.164 format; stored as E.164.",
+            "example": "+842812345678"
+          }
+        },
+        "required": [
+          "name",
+          "slug",
+          "streetAddress",
+          "ward",
+          "province"
+        ]
+      },
+      "AdminRoomLayoutResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "number",
+            "example": 3
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED",
+              "RETIRED"
+            ]
+          },
+          "gridRows": {
+            "type": "number"
+          },
+          "gridCols": {
+            "type": "number"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "seats": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminSeatResponseDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "roomId",
+          "version",
+          "status",
+          "gridRows",
+          "gridCols",
+          "publishedAt",
+          "createdAt",
+          "updatedAt",
+          "seats"
+        ]
+      },
+      "AdminRoomLayoutSummaryResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "number",
+            "example": 3
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PUBLISHED",
+              "RETIRED"
+            ]
+          },
+          "gridRows": {
+            "type": "number"
+          },
+          "gridCols": {
+            "type": "number"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "seatCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "roomId",
+          "version",
+          "status",
+          "gridRows",
+          "gridCols",
+          "publishedAt",
+          "createdAt",
+          "updatedAt",
+          "seatCount"
+        ]
+      },
+      "AdminRoomResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "theaterId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string",
+            "example": "R01"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "INACTIVE",
+              "CLOSED"
+            ]
+          },
+          "publishedLayoutId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "seatCount": {
+            "type": "number",
+            "description": "Seats in the published layout; 0 when there is none."
+          },
+          "capacity": {
+            "type": "number",
+            "description": "People the published layout holds (couple seats count 2)."
+          },
+          "inactiveSeats": {
+            "type": "number",
+            "description": "Seats currently out of service."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "theaterId",
+          "code",
+          "name",
+          "status",
+          "publishedLayoutId",
+          "seatCount",
+          "capacity",
+          "inactiveSeats",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "AdminSeatCellDto": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 49,
+            "description": "Left grid cell of the seat."
+          },
+          "y": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 29
+          },
+          "seatTypeCode": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_]{1,20}$",
+            "example": "STANDARD"
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "seatTypeCode"
+        ]
+      },
+      "AdminSeatResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "seatCode": {
+            "type": "string",
+            "example": "A01"
+          },
+          "seatTypeCode": {
+            "type": "string",
+            "example": "STANDARD"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          },
+          "rowLabel": {
+            "type": "string",
+            "example": "A"
+          },
+          "columnNumber": {
+            "type": "number",
+            "example": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "INACTIVE"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "seatCode",
+          "seatTypeCode",
+          "x",
+          "y",
+          "rowLabel",
+          "columnNumber",
+          "status"
+        ]
+      },
+      "AdminSeatTypeResponseDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "COUPLE"
+          },
+          "name": {
+            "type": "string",
+            "example": "Couple"
+          },
+          "maxOccupancy": {
+            "type": "number",
+            "example": 2
+          },
+          "width": {
+            "type": "number",
+            "example": 2
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "maxOccupancy",
+          "width"
+        ]
+      },
+      "AdminTheaterResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "streetAddress": {
+            "type": "string"
+          },
+          "ward": {
+            "type": "string"
+          },
+          "province": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true,
+            "example": "+842812345678"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "ACTIVE",
+              "INACTIVE",
+              "CLOSED"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "streetAddress",
+          "ward",
+          "province",
+          "phoneNumber",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "AdminUpdateRoomRequestDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z0-9-]{1,10}$",
+            "example": "R01",
+            "description": "Unique within the theater; stored uppercase."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "example": "Phòng 1"
+          }
+        }
+      },
+      "AdminUpdateSeatTypeRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 50,
+            "example": "Couple"
+          },
+          "maxOccupancy": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 4,
+            "example": 2,
+            "description": "People one seat holds."
+          },
+          "width": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 4,
+            "example": 2,
+            "description": "Grid cells one seat spans."
+          }
+        }
+      },
+      "AdminUpdateTheaterRequestDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "maxLength": 100,
+            "example": "cinema-thu-duc"
+          },
+          "streetAddress": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "ward": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "province": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true,
+            "description": "Local Vietnamese or E.164 format; stored as E.164.",
+            "example": "+842812345678"
+          }
+        }
+      },
+      "AdminUpsertRoomLayoutRequestDto": {
+        "type": "object",
+        "properties": {
+          "gridRows": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 30
+          },
+          "gridCols": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "seats": {
+            "maxItems": 1500,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminSeatCellDto"
+            }
+          }
+        },
+        "required": [
+          "gridRows",
+          "gridCols",
+          "seats"
+        ]
+      },
+      "AdminUserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "isEmailVerified": {
+            "type": "boolean"
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "isEmailVerified",
+          "fullName",
+          "dateOfBirth",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CodeResponseDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "COUPLE"
+          }
+        },
+        "required": [
+          "code"
+        ]
+      },
       "ErrorCode": {
         "type": "string",
         "enum": [
@@ -85,6 +2250,32 @@
           "SERVICE_UNAVAILABLE",
           "GATEWAY_TIMEOUT",
           "AUTH.EMAIL_ALREADY_EXISTS",
+          "THEATER.NOT_FOUND",
+          "THEATER.SLUG_TAKEN",
+          "THEATER.CLOSED",
+          "THEATER.IN_USE",
+          "THEATER.NOT_DRAFT",
+          "THEATER.INVALID_STATUS_TRANSITION",
+          "ROOM.NOT_FOUND",
+          "ROOM.CODE_TAKEN",
+          "ROOM.INVALID_CODE",
+          "ROOM.CLOSED",
+          "ROOM.IN_USE",
+          "ROOM.NOT_DRAFT",
+          "ROOM.INVALID_STATUS_TRANSITION",
+          "ROOM.LAYOUT_NOT_FOUND",
+          "ROOM.LAYOUT_INVALID_GRID",
+          "ROOM.LAYOUT_NOT_DRAFT",
+          "ROOM.LAYOUT_NOT_PUBLISHED",
+          "ROOM.LAYOUT_EMPTY",
+          "SEAT.NOT_FOUND",
+          "SEAT.DUPLICATE_POSITION",
+          "SEAT.UNKNOWN_TYPE",
+          "SEAT.INVALID_PLACEMENT",
+          "SEAT.TYPE_NOT_FOUND",
+          "SEAT.TYPE_CODE_TAKEN",
+          "SEAT.TYPE_INVALID",
+          "SEAT.TYPE_IN_USE",
           "USER.NOT_FOUND"
         ]
       },
@@ -149,6 +2340,83 @@
           "timestamp"
         ]
       },
+      "IdResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "PaginatedResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          },
+          "message": {
+            "type": "string",
+            "example": "OK"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "success",
+          "meta",
+          "message",
+          "timestamp"
+        ]
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 42
+          },
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 3
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "example": true
+          },
+          "hasPreviousPage": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "totalPages",
+          "hasNextPage",
+          "hasPreviousPage"
+        ]
+      },
       "SuccessResponse": {
         "type": "object",
         "properties": {
@@ -171,48 +2439,6 @@
           "success",
           "message",
           "timestamp"
-        ]
-      },
-      "UserResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "email": {
-            "type": "string",
-            "nullable": true
-          },
-          "isEmailVerified": {
-            "type": "boolean"
-          },
-          "fullName": {
-            "type": "string",
-            "nullable": true
-          },
-          "dateOfBirth": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "email",
-          "isEmailVerified",
-          "fullName",
-          "dateOfBirth",
-          "createdAt",
-          "updatedAt"
         ]
       }
     }
