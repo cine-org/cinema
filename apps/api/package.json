@@ -30,6 +30,7 @@
     "@repo/auth": "workspace:*",
     "@repo/common": "workspace:*",
     "@repo/database": "workspace:*",
+    "@repo/theaters": "workspace:*",
     "@repo/users": "workspace:*",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
