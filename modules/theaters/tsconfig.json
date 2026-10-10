@@ -1,0 +1,15 @@
+﻿{
+  "extends": "@repo/typescript-config/nest.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "src/**/*",
+    "test/**/*",
+    "vitest.config.ts",
+    "src/domain/entities/.tmp/seat.entity.ts",
+    "src/domain/entities/.tmp/theater.entity.ts",
+    "src/domain/entities/.tmp/room.entity.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}
