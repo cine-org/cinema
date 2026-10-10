@@ -3,13 +3,6 @@
   "compilerOptions": {
     "noEmit": true
   },
-  "include": [
-    "src/**/*",
-    "test/**/*",
-    "vitest.config.ts",
-    "src/domain/entities/.tmp/seat.entity.ts",
-    "src/domain/entities/.tmp/theater.entity.ts",
-    "src/domain/entities/.tmp/room.entity.ts"
-  ],
+  "include": ["src/**/*", "seed/**/*", "test/**/*", "vitest.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
