@@ -1,35 +1,82 @@
 # Frontend Structure
 
-Purpose: shared Next.js App Router conventions for `web-user` and `web-admin`.
+Purpose: shared Next.js App Router conventions for every web app (`web-user`, `web-admin`, and any future one).
 
 ```text
 src/
-  app/          routes, layouts, providers, route handlers
-  components/   reusable application UI
-  config/       runtime and build-time configuration
-  features/     feature-owned UI, hooks, API calls, and page components
-  layouts/      reusable page shells
+  app/                      routing only; files here apply to the whole site
+    layout.tsx              root layout: the only <html>/<body>, metadata defaults
+    global.css
+    robots.ts
+    healthz/route.ts
+    runtime-config/route.ts
+    (group)/                route group: own layout, no URL segment
+      layout.tsx
+      page.tsx
+      <route>/
+        page.tsx
+        _components/        used only by this route
+      _components/          used only by this group
+  config/                   runtime and build-time configuration
 ```
 
-## Ownership
+Create these only when something needs them: `components/` (UI shared by two or more routes;
+`components/ui/` for shadcn), `lib/` (utilities, API helpers), `hooks/` (shared hooks).
 
-- `src/app` owns routing and framework entrypoints. Route files should compose feature pages rather than hold substantial behavior.
-- `src/features/<name>` owns feature-specific components, hooks, API calls, services, and types.
-- `src/components` contains UI reused by multiple features. Keep single-feature components inside their feature.
-- `src/config` is the only application-facing entrypoint for environment/runtime configuration.
+## Routing
+
+- A folder is a URL segment. It is reachable only when it contains `page.tsx` or `route.ts`.
+- A `layout.tsx` wraps every route below its folder. Next composes the tree; nothing calls layouts
+  by hand. `app/layout.tsx` is required and is the only file that renders `<html>` and `<body>`.
+- Files at the top of `app/` (`layout.tsx`, `not-found.tsx`, `robots.ts`) apply to the whole site;
+  the same file inside a folder applies only to that subtree.
+- `(group)` folders do not appear in the URL. Use them to give a set of routes its own layout, for
+  example a group without the app shell for login pages and a group with it for everything else.
+- `_folder` is private and never routed. Use it for code that belongs to one route or group.
+
+## Colocation
+
+- Code used by one route or group lives next to it in `_components`. Move it to `src/components`
+  only when a second route needs it.
+- Keep `page.tsx` thin: set `metadata`, compose components, no substantial behavior.
+- Do not deep-import another route's `_components`; promote shared code instead.
+
+## Components
+
+- `page.tsx` and `layout.tsx` are Server Components by default. Add `'use client'` only to leaf
+  components that need state, effects, or browser APIs.
+- Server Components can be passed as `children` to Client Components.
+
+## Naming and imports
+
+- File and folder names are kebab-case (`login-form.tsx`). Exports keep React naming
+  (`LoginForm`). Case-only renames break on case-insensitive file systems.
+- No barrel (`index.ts`) files; import the file directly.
+- Use `@/*` for app-local source. Import workspace libraries through their public package names.
+
+## SEO
+
+- Every page exports `metadata` (at least `title`); the root layout sets `lang` and a
+  `title.template`.
+- Public pages that should rank: add `sitemap.ts`, an allowing `robots.ts`, canonical URLs and
+  Open Graph metadata.
+- Apps behind login must not be indexed: root `metadata` sets `robots: { index: false, follow: false }`
+  and `robots.ts` disallows all crawlers.
 
 ## API Client
 
-Feature API code uses `@repo/api-client`. Endpoint types are generated from the Nest OpenAPI schema; do not duplicate response types inside a web app.
+Feature API code uses the app's SDK: `@repo/sdk-user` in web-user, `@repo/sdk-admin` in web-admin.
+Endpoint types are generated from that surface's OpenAPI schema;
+do not duplicate response types inside a web app.
 
 ## Environment
 
+- `src/config` is the only application-facing entrypoint for environment/runtime configuration.
 - `/runtime-config` exposes values supplied when the container starts.
 - `NEXT_PUBLIC_*` is only a build-time fallback for values safe to expose to browsers.
 - Do not use `VITE_*` variables.
 
-## Imports
+## Migration
 
-- Use `@/*` for app-local source.
-- Import workspace libraries through their public package names.
-- Do not deep-import another feature's internal files; promote genuinely shared code instead.
+An app created before this convention may still use `features/`, `layouts/` and `providers/`.
+Move it to this layout when its structure is next touched; do not mix both layouts in one app.

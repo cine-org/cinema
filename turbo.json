@@ -20,18 +20,32 @@
       "dependsOn": ["^build"],
       "outputs": ["generated/**", "src/generated/**"]
     },
-    "@repo/api-client#generate": {
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/api/generated/openapi/schema.json"],
+    "@repo/sdk-admin#generate": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/api/generated/openapi/admin.json"],
       "outputs": ["src/generated/**"]
     },
-    "@repo/api-client#build": {
+    "@repo/sdk-admin#build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/api/generated/openapi/schema.json"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/api/generated/openapi/admin.json"],
       "outputs": ["dist/**", "src/generated/**"]
     },
-    "@repo/api-client#typecheck": {
+    "@repo/sdk-admin#typecheck": {
       "dependsOn": ["build", "^build"],
-      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/api/generated/openapi/schema.json"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/api/generated/openapi/admin.json"],
+      "outputs": []
+    },
+    "@repo/sdk-user#generate": {
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/api/generated/openapi/user.json"],
+      "outputs": ["src/generated/**"]
+    },
+    "@repo/sdk-user#build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/api/generated/openapi/user.json"],
+      "outputs": ["dist/**", "src/generated/**"]
+    },
+    "@repo/sdk-user#typecheck": {
+      "dependsOn": ["build", "^build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/apps/api/generated/openapi/user.json"],
       "outputs": []
     },
     "@repo/web-user#build": {

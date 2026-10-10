@@ -13,7 +13,7 @@ coverage
 *.tsbuildinfo
 
 # generated code
-packages/api-client/src/generated
+packages/sdk-*/src/generated
 packages/database/src/generated
 
 # 

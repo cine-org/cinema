@@ -52,8 +52,8 @@ does not run never reports its check, and the PR waits forever.
 
 ## Checks worth knowing
 
-- `openapi:check`: regenerates `apps/api/generated/openapi/schema.json` and fails if it differs
-  from the committed file.
+- `openapi:check`: regenerates `apps/api/generated/openapi/{user,admin}.json` and fails if they differ
+  from the committed files. Generation also fails when a controller has neither `@UserApi` nor `@AdminApi`.
 - `db:test:check`: after applying migrations, fails if `schema.prisma` still differs from the
   database, i.e. a schema change has no migration.
 - Docker builds catch what `build` cannot, e.g. a workspace import missing from `package.json`

@@ -29,7 +29,7 @@ Purpose: repo-wide code style and architectural guardrails.
 
 - Runtime public config is served by the Next `/runtime-config` route, with `NEXT_PUBLIC_*` as the build-time fallback.
 - App code should consume `config`, not read `process.env.NEXT_PUBLIC_*` throughout feature code.
-- API calls should go through `@repo/api-client` or app-level API helpers.
+- API calls should go through the app's SDK (`@repo/sdk-user` / `@repo/sdk-admin`) or app-level API helpers.
 
 ## Tests
 
