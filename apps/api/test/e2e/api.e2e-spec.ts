@@ -26,7 +26,7 @@ describe('API (e2e)', () => {
   afterAll(() => app.close());
 
   it('reads the registered user back', async () => {
-    const res = await api().get(`/api/v1/users/${userId}`).expect(200);
+    const res = await api().get(`/api/v1/admin/users/${userId}`).expect(200);
 
     expect(res.body).toMatchObject({
       success: true,
@@ -50,7 +50,7 @@ describe('API (e2e)', () => {
   });
 
   it('returns 404 with a request id for an unknown user', async () => {
-    const res = await api().get(`/api/v1/users/${crypto.randomUUID()}`).expect(404);
+    const res = await api().get(`/api/v1/admin/users/${crypto.randomUUID()}`).expect(404);
 
     expect(res.body).toMatchObject({ success: false, code: 'USER.NOT_FOUND' });
     expect((res.body as Body).requestId).toBeDefined();

@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional, ApiSchema } from '@nestjs/swagger';
 import { COMMON_ERROR_CODE, type ErrorDetail } from '@repo/common';
+import { ERROR_CODE_HTTP_STATUS } from '@/common/errors';
 
 // Swagger-only mirror of ErrorDetail, which is a plain type.
 @ApiSchema({ name: 'ErrorDetail' })
@@ -35,7 +36,8 @@ export class ErrorResponse {
   @ApiProperty({ example: 'Request timed out' })
   readonly message: string;
 
-  @ApiProperty({ example: 'REQUEST_TIMEOUT' })
+  // Publishes every code as the `ErrorCode` enum so clients get a typed list.
+  @ApiProperty({ enum: Object.keys(ERROR_CODE_HTTP_STATUS), enumName: 'ErrorCode' })
   readonly code: string;
 
   @ApiPropertyOptional({ type: [ErrorDetailSchema] })

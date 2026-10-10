@@ -1,6 +1,6 @@
 import { RequestMethod, VersioningType, type INestApplication } from '@nestjs/common';
 
-// Constants, not env: the generated api-client bakes these into every path.
+// Constants, not env: the generated SDKs bake these into every path.
 export const API_PREFIX = 'api';
 export const API_DEFAULT_VERSION = '1';
 

@@ -9,8 +9,9 @@ base="${1:-}"
 docs='.*\.md|LICENSE'
 # Root files copied into every image although they belong to no package.
 root_build_files='package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|\.dockerignore'
-# Web apps read it through @repo/api-client, which Turbo does not link to @repo/api.
-openapi_schema='apps/api/generated/openapi/schema\.json'
+# Each web app reads its schema through its SDK, which Turbo does not link to @repo/api.
+user_schema='apps/api/generated/openapi/user\.json'
+admin_schema='apps/api/generated/openapi/admin\.json'
 
 # Empty (manual run), all-zero (new branch) or unknown SHAs cannot be diffed against.
 has_base() {
@@ -45,8 +46,12 @@ affected_apps() {
     fi
   done
 
-  if grep -qxE "$openapi_schema" <<<"$files"; then
-    printf '%s\n' web-user web-admin
+  if grep -qxE "$user_schema" <<<"$files"; then
+    echo web-user
+  fi
+
+  if grep -qxE "$admin_schema" <<<"$files"; then
+    echo web-admin
   fi
 }
 

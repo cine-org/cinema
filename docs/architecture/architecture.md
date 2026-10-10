@@ -25,7 +25,7 @@ docs/            short project references
 ## Packages
 
 - `@repo/database`: Prisma schema, migrations, generated client. Migrations ship inside the api image.
-- `@repo/api-client`: OpenAPI-generated types plus thin client helpers.
+- `@repo/sdk-user`, `@repo/sdk-admin`: OpenAPI-generated types, one package per API surface.
 - `@repo/utils`, `@repo/logger`, `@repo/queue`: shared runtime utilities.
 
 ## Modules
@@ -54,8 +54,9 @@ domain code -> Nest HTTP exceptions
 ## Source Of Truth
 
 - API endpoints and DTOs: `apps/api`.
-- OpenAPI JSON artifact: generated from `apps/api`.
-- API client types: generated in `packages/api-client/src/generated`.
+- OpenAPI JSON artifacts: generated from `apps/api` into `generated/openapi/user.json` and `admin.json`;
+  controllers declare their surface with `@UserApi` / `@AdminApi` (admin routes live under `/admin`).
+- SDK types: generated in `packages/sdk-*/src/generated`.
 - Database schema: `packages/database/prisma/schema.prisma`.
 - Deploy images: GHCR.
 

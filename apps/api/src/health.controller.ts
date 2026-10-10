@@ -1,5 +1,5 @@
 import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
-import { ApiOkResponse, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiExcludeController, ApiOkResponse, ApiProperty } from '@nestjs/swagger';
 import { RawResponse } from '@/common/responses';
 
 export class HealthResponseDto {
@@ -9,7 +9,8 @@ export class HealthResponseDto {
   readonly status!: 'ok';
 }
 
-@ApiTags('health')
+// Probes only: not part of the admin or user API.
+@ApiExcludeController()
 @RawResponse()
 @Controller({
   path: 'health',

@@ -1,7 +1,7 @@
 {
-  "name": "@repo/api-client",
+  "name": "@repo/sdk-admin",
   "version": "0.0.0",
-  "description": "",
+  "description": "Types for the admin API, generated from apps/api/generated/openapi/admin.json.",
   "private": true,
   "license": "ISC",
   "files": [
@@ -18,15 +18,12 @@
   "scripts": {
     "build": "pnpm generate && tsc -p tsconfig.build.json",
     "dev": "tsc -p tsconfig.build.json --watch",
-    "generate": "openapi-typescript ../../apps/api/generated/openapi/schema.json -o src/generated/openapi/types.ts",
+    "generate": "openapi-typescript ../../apps/api/generated/openapi/admin.json -o src/generated/openapi/types.ts",
     "typecheck": "pnpm generate && tsc -p tsconfig.json",
     "test": "pnpm test:unit",
     "test:unit": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage --passWithNoTests"
-  },
-  "dependencies": {
-    "openapi-fetch": "^0.15.0"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

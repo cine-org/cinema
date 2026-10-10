@@ -11,11 +11,7 @@ apps/<app>/
   Dockerfile
   public/
   src/
-    app/
-    components/
-    config/
-    features/
-    layouts/
+    ...         see frontend-structure.md
   test/
     ...mirror src
 ```
@@ -24,10 +20,10 @@ Required conventions:
 
 - Extend `@repo/typescript-config/next.json`.
 - Use `@repo/vitest-config`. Add an app-local `test/setup.ts` only when DOM tests need Testing Library or jest-dom setup.
-- Keep app routes thin and place page behavior in `features/*`.
+- Follow `frontend-structure.md` for source layout, naming, and SEO.
 - Use `NEXT_PUBLIC_*` only for values intentionally embedded at build time.
 - Use the existing `/runtime-config` endpoint for values supplied when the container starts.
-- Build through Turbo so `@repo/api-client`, contracts, and utilities are ready first.
+- Build through Turbo so the app's SDK (`@repo/sdk-user` or `@repo/sdk-admin`), contracts, and utilities are ready first.
 - Keep `output: 'standalone'` for Linux/Docker builds.
 
 Typical scripts:

@@ -1,0 +1,36 @@
+{
+  "name": "@repo/sdk-user",
+  "version": "0.0.0",
+  "description": "Types for the user API, generated from apps/api/generated/openapi/user.json.",
+  "private": true,
+  "license": "ISC",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "pnpm generate && tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "generate": "openapi-typescript ../../apps/api/generated/openapi/user.json -o src/generated/openapi/types.ts",
+    "typecheck": "pnpm generate && tsc -p tsconfig.json",
+    "test": "pnpm test:unit",
+    "test:unit": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage --passWithNoTests"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@repo/vitest-config": "workspace:*",
+    "@types/node": "^25.6.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "openapi-typescript": "^7.10.1",
+    "vitest": "^3.2.4"
+  }
+}
