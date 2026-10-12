@@ -36,6 +36,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const requestId = this.getRequestId(response);
 
     if (exception instanceof AppException) {
+      setRetryAfter(response, exception);
       return response.status(getHttpStatusForErrorCode(exception.code)).json(
         ErrorResponse.of({
           message: exception.message,
@@ -161,5 +162,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     return typeof value.message === 'string';
+  }
+}
+
+// 429 and 503 exceptions may say when to retry (TooManyRequestsException, ServiceUnavailableException).
+function setRetryAfter(response: Response, exception: AppException): void {
+  const seconds = (exception as { retryAfterSeconds?: unknown }).retryAfterSeconds;
+  if (typeof seconds === 'number' && Number.isFinite(seconds) && seconds > 0) {
+    response.setHeader('Retry-After', String(Math.ceil(seconds)));
   }
 }

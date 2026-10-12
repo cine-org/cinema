@@ -7,10 +7,21 @@ export const envSchema = z.object({
   CORS_ORIGINS: z.string().default(''),
   ENABLE_SWAGGER: z.stringbool().default(false),
   LOG_LEVEL: z.enum(['log', 'error', 'warn', 'debug', 'verbose']).default('log'),
+  // Proxies in front of the API whose X-Forwarded-For is trusted: a hop count ("1") or
+  // comma-separated addresses/CIDRs. Unset trusts none (direct connections, local dev).
+  TRUST_PROXY: z
+    .string()
+    .optional()
+    .refine((value) => value?.trim().toLowerCase() !== 'true', {
+      message: 'trusting every proxy lets clients fake their IP; use a hop count or addresses',
+    }),
 
   DATABASE_URL: z.url(),
   // Read-only role; unset means reads share DATABASE_URL.
   DATABASE_URL_RO: z.url().optional(),
+
+  // Rate limits; the cache client accepts redis:// and rediss://.
+  REDIS_URL: z.url(),
 });
 
 export type Env = z.infer<typeof envSchema>;

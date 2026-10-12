@@ -98,11 +98,22 @@ export class UnprocessableEntityException extends AppException {
   }
 }
 
+export type RetryAfterExceptionOptions = AppExceptionOptions & {
+  // Sent as the Retry-After header.
+  readonly retryAfterSeconds?: number;
+};
+
 export class TooManyRequestsException extends AppException {
   readonly code = COMMON_ERROR_CODE.TOO_MANY_REQUESTS;
+  readonly retryAfterSeconds?: number;
 
-  constructor({ message = 'Too many requests', ...options }: AppExceptionOptions = {}) {
+  constructor({
+    message = 'Too many requests',
+    retryAfterSeconds,
+    ...options
+  }: RetryAfterExceptionOptions = {}) {
     super(message, options);
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 
@@ -132,9 +143,15 @@ export class NotImplementedException extends AppException {
 
 export class ServiceUnavailableException extends AppException {
   readonly code = COMMON_ERROR_CODE.SERVICE_UNAVAILABLE;
+  readonly retryAfterSeconds?: number;
 
-  constructor({ message = 'Service unavailable', ...options }: AppExceptionOptions = {}) {
+  constructor({
+    message = 'Service unavailable',
+    retryAfterSeconds,
+    ...options
+  }: RetryAfterExceptionOptions = {}) {
     super(message, options);
+    this.retryAfterSeconds = retryAfterSeconds;
   }
 }
 

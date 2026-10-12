@@ -1,5 +1,6 @@
 import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { CacheModule } from '@repo/cache';
 import { DatabaseModule } from '@repo/database';
 import { GlobalExceptionFilter } from '@/common/filters';
 import { requestIdMiddleware } from '@/common/middleware';
@@ -20,6 +21,21 @@ import { UsersModule } from '@/modules/users';
       useFactory: (config: ConfigService) => ({
         url: config.db.url,
         readUrl: config.db.readUrl,
+      }),
+    }),
+    // Holds rate limits only. Fails fast and never blocks startup: limiters decide what to do
+    // while Redis is down (see @repo/rate-limit).
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        mode: 'standalone',
+        url: config.cache.url,
+        connectTimeoutMs: 5_000,
+        commandTimeoutMs: 300,
+        enableOfflineQueue: false,
+        maxRetriesPerRequest: 0,
+        requireConnectionOnStartup: false,
       }),
     }),
     AuthModule,
