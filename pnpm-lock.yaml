@@ -80,12 +80,18 @@ importers:
       '@repo/auth':
         specifier: workspace:*
         version: link:../../modules/auth
+      '@repo/cache':
+        specifier: workspace:*
+        version: link:../../packages/cache
       '@repo/common':
         specifier: workspace:*
         version: link:../../modules/common
       '@repo/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@repo/rate-limit':
+        specifier: workspace:*
+        version: link:../../packages/rate-limit
       '@repo/theaters':
         specifier: workspace:*
         version: link:../../modules/theaters
@@ -596,6 +602,28 @@ importers:
       prisma:
         specifier: ^7.8.0
         version: 7.8.0(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(magicast@0.3.5)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/node@25.9.1)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3)
+
+  packages/rate-limit:
+    dependencies:
+      '@nestjs/common':
+        specifier: ^11.0.1
+        version: 11.1.23(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@repo/cache':
+        specifier: workspace:*
+        version: link:../cache
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../tooling/typescript-config
+      '@repo/vitest-config':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-config
+      '@vitest/coverage-v8':
+        specifier: ^3.2.4
+        version: 3.2.4(vitest@3.2.4(@types/node@25.9.1)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3))
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@25.9.1)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3)

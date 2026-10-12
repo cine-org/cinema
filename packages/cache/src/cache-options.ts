@@ -7,6 +7,14 @@ export type RedisSentinelNode = {
 
 type CacheRedisCommonOptions = {
   readonly keyPrefix?: string;
+  readonly connectTimeoutMs?: number;
+  // Per-command timeout; unset waits as long as the connection allows.
+  readonly commandTimeoutMs?: number;
+  // false: commands fail at once while disconnected instead of queueing until reconnect.
+  readonly enableOfflineQueue?: boolean;
+  readonly maxRetriesPerRequest?: number;
+  // false: the app still starts when Redis is down; the client keeps reconnecting in the background.
+  readonly requireConnectionOnStartup?: boolean;
 };
 
 export type CacheRedisStandaloneOptions = CacheRedisCommonOptions & {
@@ -33,6 +41,10 @@ const createBaseRedisClientOptions = (overrides: RedisOptions = {}): RedisOption
   maxRetriesPerRequest: 3,
   ...overrides,
 });
+
+// Unset options keep ioredis defaults instead of overriding them with undefined.
+const definedOnly = (options: RedisOptions): RedisOptions =>
+  Object.fromEntries(Object.entries(options).filter(([, value]) => value !== undefined));
 
 const parseRedisUrl = (redisUrl: string): RedisOptions => {
   const url = new URL(redisUrl);
@@ -67,6 +79,12 @@ export const createCacheRedisClientOptions = (
 ): RedisOptions => {
   const redisOptions = createBaseRedisClientOptions({
     keyPrefix: options.keyPrefix,
+    ...definedOnly({
+      connectTimeout: options.connectTimeoutMs,
+      commandTimeout: options.commandTimeoutMs,
+      enableOfflineQueue: options.enableOfflineQueue,
+      maxRetriesPerRequest: options.maxRetriesPerRequest,
+    }),
     ...overrides,
   });
 

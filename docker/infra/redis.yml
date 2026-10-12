@@ -1,5 +1,9 @@
 services:
-  # Cache and rate limiting. Note allkeys-lru: anything stored here can be evicted.
+  # Cache and rate limiting. allkeys-lru: under memory pressure the least recently used keys go
+  # first. A rate limit bucket in use is recent, so it is rarely evicted; an evicted one starts full
+  # again. Watch used_memory against maxmemory and evicted_keys (redis-cli info): if evictions keep
+  # rising, cache is crowding out rate limits. Then shorten cache TTLs, then raise maxmemory, and
+  # only then split cache and rate limits into separate instances.
   redis:
     image: redis:7-alpine
     command: ['redis-server', '--maxmemory', '512mb', '--maxmemory-policy', 'allkeys-lru']
