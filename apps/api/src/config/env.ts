@@ -22,7 +22,24 @@ export const envSchema = z.object({
 
   // Rate limits; the cache client accepts redis:// and rediss://.
   REDIS_URL: z.url(),
+
+  SMTP_HOST: z.string().min(1),
+  SMTP_PORT: z.coerce.number().int().positive(),
+  // true for port 465 (TLS from the start); false for 587 (STARTTLS, required).
+  SMTP_SECURE: z.stringbool(),
+  SMTP_USER: z.string().min(1),
+  SMTP_PASSWORD: z.string().min(1),
+  SMTP_FROM: z.string().min(1),
+  // Generate with: openssl rand -base64 32
+  AUTH_OTP_HMAC_KEY: z.string().refine(isKey, 'must be base64 of at least 32 bytes'),
+  // Signs access tokens. Generate with: openssl rand -base64 32
+  AUTH_JWT_SECRET: z.string().refine(isKey, 'must be base64 of at least 32 bytes'),
 });
+
+function isKey(value: string): boolean {
+  const bytes = Buffer.from(value, 'base64');
+  return bytes.length >= 32 && bytes.toString('base64') === value;
+}
 
 export type Env = z.infer<typeof envSchema>;
 

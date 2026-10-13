@@ -16,8 +16,8 @@
           }
         },
         "responses": {
-          "201": {
-            "description": "Account created.",
+          "202": {
+            "description": "Registration accepted; the verification code is emailed asynchronously.",
             "content": {
               "application/json": {
                 "schema": {
@@ -32,7 +32,353 @@
                       ],
                       "properties": {
                         "data": {
-                          "$ref": "#/components/schemas/RegisterResponseDto"
+                          "$ref": "#/components/schemas/VerificationAcceptedResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; see the Retry-After header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/verify-email": {
+      "post": {
+        "operationId": "AuthController_verifyEmail_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email verified; no session is created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/VerifyEmailResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; see the Retry-After header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/resend-verification-email": {
+      "post": {
+        "operationId": "AuthController_resendVerificationEmail_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResendVerificationEmailRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted; a new code is emailed if the given one can be renewed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/VerificationAcceptedResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; see the Retry-After header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "AuthController_login_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Logged in; the refresh token is set as an HttpOnly cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AccessTokenResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: missing or untrusted Origin header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; see the Retry-After header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "New access token; the cookie now holds a new refresh token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AccessTokenResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: missing or untrusted Origin header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; see the Retry-After header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "refresh_token": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Session of the cookie revoked, if any; the cookie is cleared either way.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/LogoutResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: missing or untrusted Origin header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; see the Retry-After header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "refresh_token": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout-all": {
+      "post": {
+        "operationId": "AuthController_logoutAll_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Every session of the account revoked, this one included; cookie cleared.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/LogoutAllResponseDto"
                         }
                       }
                     }
@@ -42,6 +388,268 @@
             }
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/sessions": {
+      "get": {
+        "operationId": "AuthController_listSessions_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Active sessions of the account, most recently refreshed first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/SessionResponseDto"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/sessions/{id}": {
+      "delete": {
+        "operationId": "AuthController_revokeSession_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session revoked. Revoking the current one ends this access token too.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/forgot-password": {
+      "post": {
+        "operationId": "AuthController_forgotPassword_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted; if the email has an account, a reset code is emailed. Same answer otherwise.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PasswordResetAcceptedResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; see the Retry-After header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/reset-password": {
+      "post": {
+        "operationId": "AuthController_resetPassword_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset and email marked verified; every session ended. Log in with the new password.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PasswordUpdatedResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; see the Retry-After header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/change-password": {
+      "post": {
+        "operationId": "AuthController_changePassword_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed; every session ended, this one too. Cookie cleared.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PasswordUpdatedResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "tags": [
           "auth"
         ]
@@ -243,6 +851,50 @@
       }
     },
     "schemas": {
+      "AccessTokenResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Send as `Authorization: Bearer <accessToken>`."
+          },
+          "tokenType": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "accessTokenExpiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Refresh before this."
+          }
+        },
+        "required": [
+          "accessToken",
+          "tokenType",
+          "accessTokenExpiresAt"
+        ]
+      },
+      "ChangePasswordRequestDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
       "ErrorDetail": {
         "type": "object",
         "properties": {
@@ -299,6 +951,76 @@
           "message",
           "code",
           "timestamp"
+        ]
+      },
+      "ForgotPasswordRequestDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "IdResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "LoginRequestDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "LogoutAllResponseDto": {
+        "type": "object",
+        "properties": {
+          "revokedSessions": {
+            "type": "number",
+            "description": "Sessions revoked, the current one included."
+          }
+        },
+        "required": [
+          "revokedSessions"
+        ]
+      },
+      "LogoutResponseDto": {
+        "type": "object",
+        "properties": {
+          "loggedOut": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "loggedOut"
         ]
       },
       "PaginatedResponse": {
@@ -366,6 +1088,44 @@
           "hasPreviousPage"
         ]
       },
+      "PasswordResetAcceptedResponseDto": {
+        "type": "object",
+        "properties": {
+          "resetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expiresInSeconds": {
+            "type": "number",
+            "example": 600,
+            "description": "Lifetime of the emailed code."
+          },
+          "resendAfterSeconds": {
+            "type": "number",
+            "example": 60,
+            "description": "Wait before requesting another code."
+          }
+        },
+        "required": [
+          "resetId",
+          "expiresInSeconds",
+          "resendAfterSeconds"
+        ]
+      },
+      "PasswordUpdatedResponseDto": {
+        "type": "object",
+        "properties": {
+          "passwordUpdated": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "passwordUpdated"
+        ]
+      },
       "RegisterRequestDto": {
         "type": "object",
         "properties": {
@@ -389,16 +1149,41 @@
           "password"
         ]
       },
-      "RegisterResponseDto": {
+      "ResendVerificationEmailRequestDto": {
         "type": "object",
         "properties": {
-          "id": {
+          "verificationId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "description": "The latest verificationId the client holds."
           }
         },
         "required": [
-          "id"
+          "verificationId"
+        ]
+      },
+      "ResetPasswordRequestDto": {
+        "type": "object",
+        "properties": {
+          "resetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "otp": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "example": "012345"
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "resetId",
+          "otp",
+          "newPassword"
         ]
       },
       "SeatTypeResponseDto": {
@@ -426,6 +1211,46 @@
           "name",
           "maxOccupancy",
           "width"
+        ]
+      },
+      "SessionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the login happened."
+          },
+          "lastRefreshedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "userAgent": {
+            "type": "string",
+            "nullable": true,
+            "description": "As sent at login; informational."
+          },
+          "ipAddress": {
+            "type": "string",
+            "nullable": true,
+            "description": "IP at login; informational."
+          },
+          "isCurrent": {
+            "type": "boolean",
+            "description": "The session of the access token making this request."
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "lastRefreshedAt",
+          "userAgent",
+          "ipAddress",
+          "isCurrent"
         ]
       },
       "SuccessResponse": {
@@ -488,6 +1313,62 @@
           "ward",
           "province",
           "phoneNumber"
+        ]
+      },
+      "VerificationAcceptedResponseDto": {
+        "type": "object",
+        "properties": {
+          "verificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expiresInSeconds": {
+            "type": "number",
+            "example": 600,
+            "description": "Lifetime of the emailed code."
+          },
+          "resendAfterSeconds": {
+            "type": "number",
+            "example": 60,
+            "description": "Wait before requesting another code."
+          }
+        },
+        "required": [
+          "verificationId",
+          "expiresInSeconds",
+          "resendAfterSeconds"
+        ]
+      },
+      "VerifyEmailRequestDto": {
+        "type": "object",
+        "properties": {
+          "verificationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "otp": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "example": "012345"
+          }
+        },
+        "required": [
+          "verificationId",
+          "otp"
+        ]
+      },
+      "VerifyEmailResponseDto": {
+        "type": "object",
+        "properties": {
+          "isEmailVerified": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "isEmailVerified"
         ]
       }
     }
