@@ -1,26 +1,34 @@
 // Dev/test data only, never run against prod. Idempotent, so `pnpm db:seed` can run any time.
-import { DatabaseReadClient, DatabaseWriteClient } from '@repo/database';
-import { RegisterCommand, RegisterHandler } from '../src/app';
-import {
-  Argon2PasswordHasher,
-  PrismaAccountReadRepository,
-  PrismaAccountWriteRepository,
-} from '../src/infra';
+import { Email } from '@repo/common';
+import { DatabaseWriteClient } from '@repo/database';
+import { Account } from '../src/domain';
+import { Argon2PasswordHasher } from '../src/infra';
 
 const ACCOUNTS = [{ email: 'admin@cinema.local', password: 'admin12345', fullName: 'Admin' }];
 
-// Goes through RegisterHandler so seeded accounts get normalized emails and real argon2 hashes.
+// Seeded accounts are already verified: no code, no Redis, no mail. Email and password go through
+// the same normalization and Argon2 hashing as registration.
 async function seed(url: string): Promise<void> {
-  // Seeding writes, so both sides use the same owner URL.
-  const reader = new PrismaAccountReadRepository(new DatabaseReadClient({ url }));
-  const writer = new PrismaAccountWriteRepository(new DatabaseWriteClient({ url }));
-  const register = new RegisterHandler(reader, writer, new Argon2PasswordHasher());
+  const db = new DatabaseWriteClient({ url });
+  const hasher = new Argon2PasswordHasher();
 
-  for (const account of ACCOUNTS) {
-    if (await reader.existsByEmail(account.email)) continue;
-    await register.execute(new RegisterCommand(account));
-    console.log(`seeded account ${account.email}`);
+  for (const input of ACCOUNTS) {
+    const email = Email.create(input.email);
+    if (await db.user.findUnique({ where: { email: email.value }, select: { id: true } })) continue;
+
+    await db.user.create({
+      data: {
+        id: Account.newId(),
+        email: email.value,
+        passwordHash: await hasher.hash(input.password),
+        fullName: input.fullName,
+        isEmailVerified: true,
+      },
+    });
+    console.log(`seeded account ${email.value}`);
   }
+
+  await db.$disconnect();
 }
 
 const url = process.env.DATABASE_URL;
