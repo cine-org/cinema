@@ -1,6 +1,6 @@
 import { Logger, type INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { setupHttp, setupLogger, setupSwagger } from '@/bootstrap';
+import { setupHttp, setupLogger, setupProxy, setupSwagger } from '@/bootstrap';
 import { ConfigService } from '@/config';
 import { AppModule } from '@/app.module';
 
@@ -9,6 +9,9 @@ async function bootstrap() {
     // Held until setupLogger applies LOG_LEVEL, then flushed.
     bufferLogs: true,
   });
+
+  // Runs onModuleDestroy on SIGTERM/SIGINT so Redis and database connections close cleanly.
+  app.enableShutdownHooks();
 
   const configService = app.get(ConfigService);
   const { app: appConfig } = configService;
@@ -21,6 +24,7 @@ async function bootstrap() {
   });
 
   setupHttp(app);
+  setupProxy(app, appConfig.trustProxy);
 
   setupSwagger(app, configService);
 
