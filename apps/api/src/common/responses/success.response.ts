@@ -31,8 +31,8 @@ export class SuccessResponse<T> {
   }
 }
 
-// Success statuses the envelope supports; add 202 here when async jobs arrive.
-type SuccessStatus = HttpStatus.OK | HttpStatus.CREATED;
+// Success statuses the envelope supports. 202: accepted, work continues after the response.
+type SuccessStatus = HttpStatus.OK | HttpStatus.CREATED | HttpStatus.ACCEPTED;
 
 type ApiSuccessOptions = {
   readonly status?: SuccessStatus;
