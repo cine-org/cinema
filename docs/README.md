@@ -6,6 +6,7 @@ Purpose: quick context for humans and AI agents working in this repo.
 
 - [Architecture](architecture/architecture.md): repo shape, dependency direction, source-of-truth rules.
 - [Frontend Structure](apps/frontend-structure.md): Next.js project layout and conventions for web-user and web-admin.
+- [shadcn/ui](apps/shadcn-ui.md): UI component setup and conventions for the web apps.
 - [Workspace](setup/workspace.md): first local setup.
 - [Root Scripts](setup/package-json.md): common commands.
 - [Local Testing](tooling/local-testing.md): unit, integration, e2e local flow.
