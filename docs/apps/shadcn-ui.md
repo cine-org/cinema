@@ -47,7 +47,7 @@ These match the official manual installation page, which describes the same file
 
 `add button input label card` copies `src/components/ui/button.tsx`, `input.tsx`, `label.tsx`, `card.tsx`. It adds no packages.
 
-Components added so far in `web-admin`: `avatar`, `badge`, `button`, `card`, `checkbox`, `dropdown-menu`, `input`, `label`, `progress`, `select`, `separator`, `sheet`, `sidebar`, `skeleton`, `table`, `tabs`, `tooltip`. `sidebar` also adds `src/hooks/use-mobile.ts`.
+Components added so far in `web-admin`: `avatar`, `badge`, `button`, `card`, `checkbox`, `dropdown-menu`, `input`, `label`, `progress`, `select`, `separator`, `sheet`, `sidebar`, `skeleton`, `sonner`, `table`, `tabs`, `tooltip`. `sidebar` also adds `src/hooks/use-mobile.ts`; `sonner` adds the `sonner` and `next-themes` packages (`next-themes` only supplies `useTheme`; no theme provider is needed).
 
 ## Adding components
 
@@ -74,4 +74,5 @@ Components use semantic color names (`bg-background`, `text-primary`, `border-bo
 - `Sidebar` needs a `TooltipProvider` above it (wrap the layout once); `SidebarProvider` does not add one.
 - `src/hooks/use-mobile.ts` was edited after generation to use `useSyncExternalStore`, because the generated `useEffect` + `setState` version fails the `react-hooks/set-state-in-effect` lint rule. Keep that edit when re-running `add`.
 - `components/ui/input.tsx` was edited after generation: text stays `text-base` (16px) at every width (the default drops to `md:text-sm`), so iOS does not zoom on focus and phone and desktop match; height is `h-9`. Keep that edit when re-running `add input`.
+- `sonner` toasts need one `<Toaster />`, mounted in the admin shell (top right). Call `toast.success(...)` / `toast.error(...)` from client components for the result of an action.
 - The Geist font is fetched from Google Fonts at build time, so the build needs network access.
