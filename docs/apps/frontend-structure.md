@@ -9,7 +9,6 @@ src/
     global.css
     robots.ts
     healthz/route.ts
-    runtime-config/route.ts
     (group)/                route group: own layout, no URL segment
       layout.tsx
       page.tsx
@@ -71,8 +70,8 @@ do not duplicate response types inside a web app.
 
 ## Environment
 
-- `src/config` is the only application-facing entrypoint for environment/runtime configuration.
-- `/runtime-config` exposes values supplied when the container starts.
+- `src/config` is the only application-facing entrypoint for environment/runtime configuration. Import its files directly (no barrel), so server-only code stays out of client bundles.
+- `getConfig()` (server) reads values supplied when the container starts. A server layout passes them to `ConfigProvider`, and client components read them with `useConfig()`. Reading env at request time makes the layout's routes render dynamically.
 - `NEXT_PUBLIC_*` is only a build-time fallback for values safe to expose to browsers.
 - Do not use `VITE_*` variables.
 

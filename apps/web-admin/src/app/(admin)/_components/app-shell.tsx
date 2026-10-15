@@ -1,4 +1,5 @@
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AppSidebar } from './app-sidebar';
 import { BottomNav } from './bottom-nav';
@@ -17,6 +18,7 @@ export const AppShell = ({ children }: AppShellProps) => {
         </SidebarInset>
         <BottomNav />
       </SidebarProvider>
+      <Toaster position="top-right" />
     </TooltipProvider>
   );
 };

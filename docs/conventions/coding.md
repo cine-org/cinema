@@ -29,7 +29,7 @@ Purpose: repo-wide code style and architectural guardrails.
 
 ## Frontend
 
-- Runtime public config is served by the Next `/runtime-config` route, with `NEXT_PUBLIC_*` as the build-time fallback.
+- Runtime public config is read from `process.env` in a server layout and passed to client code through `ConfigProvider`; `NEXT_PUBLIC_*` is only a build-time fallback.
 - App code should consume `config`, not read `process.env.NEXT_PUBLIC_*` throughout feature code.
 - API calls should go through the app's SDK (`@repo/sdk-user` / `@repo/sdk-admin`) or app-level API helpers.
 

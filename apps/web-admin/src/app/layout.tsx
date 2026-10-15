@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import './global.css';
 import { Geist } from 'next/font/google';
+import { ConfigProvider } from '@/config/config-provider';
+import { getConfig } from '@/config/get-config';
 import { cn } from '@/lib/utils';
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
@@ -12,12 +13,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const config = await getConfig();
+
   return (
     <html lang="en" className={cn('font-sans', geist.variable)}>
       <body className="antialiased">
-        <Script src="/runtime-config" strategy="beforeInteractive" />
-        {children}
+        <ConfigProvider value={config}>{children}</ConfigProvider>
       </body>
     </html>
   );
