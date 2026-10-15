@@ -22,7 +22,7 @@ Required conventions:
 - Use `@repo/vitest-config`. Add an app-local `test/setup.ts` only when DOM tests need Testing Library or jest-dom setup.
 - Follow `frontend-structure.md` for source layout, naming, and SEO.
 - Use `NEXT_PUBLIC_*` only for values intentionally embedded at build time.
-- Use the existing `/runtime-config` endpoint for values supplied when the container starts.
+- Read values supplied when the container starts in a server layout (`getConfig()`) and pass them down with `ConfigProvider`; see `frontend-structure.md`.
 - Build through Turbo so the app's SDK (`@repo/sdk-user` or `@repo/sdk-admin`), contracts, and utilities are ready first.
 - Keep `output: 'standalone'` for Linux/Docker builds.
 
