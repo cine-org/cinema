@@ -1,5 +1,5 @@
-export const metadata = { title: 'Users' };
+import { redirect } from 'next/navigation';
 
 export default function UsersPage() {
-  return <h1 className="text-2xl font-semibold">Users</h1>;
+  redirect('/users/customers');
 }
