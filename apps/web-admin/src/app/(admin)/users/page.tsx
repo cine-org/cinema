@@ -1,7 +1,5 @@
-import { PageStub } from '../_components/page-stub';
-
-export const metadata = { title: 'Users' };
+import { redirect } from 'next/navigation';
 
 export default function UsersPage() {
-  return <PageStub title="Users" summary="Customer and employee accounts." />;
+  redirect('/users/customers');
 }
