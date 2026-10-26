@@ -52,6 +52,11 @@ Pages use mock data under each route's `_data/`, and every mutation returns "not
 admin api has no list or update endpoints for these screens yet. Data, mutations and list pages
 follow [Frontend Structure](../../docs/apps/frontend-structure.md).
 
+Kept by hand in step with the api until the SDK can carry them:
+
+- `GRID_LIMIT` in `theaters/_data/layout.ts` mirrors the grid limits in
+  `modules/theaters/src/domain/entities/room-layout.entity.ts`.
+
 ## shadcn/ui
 
 Components added: `avatar`, `alert-dialog`, `badge`, `button`, `card`, `dialog`, `dropdown-menu`,
