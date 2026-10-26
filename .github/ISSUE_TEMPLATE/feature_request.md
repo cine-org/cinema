@@ -1,22 +1,25 @@
 ---
 name: Feature Request
 about: Suggest a new feature
-labels: enhancement
+title: '[Component] Feat: '
+type: Feature
 ---
 
-## Summary
+## Goal
 
-<!-- Brief description of the feature -->
+<!-- One or two sentences: the outcome -->
 
-## Problem Statement
+## Scope
 
-<!-- What problem does this solve? Why is it needed? -->
+-
 
-## Proposed Solution
+## Non-goals
 
-<!-- Describe the proposed solution -->
+<!-- What is left out, and where it goes -->
 
 ## Acceptance Criteria
+
+<!-- A parent issue (core, upgrade) states here what "done" means -->
 
 - [ ]
 - [ ]
@@ -25,10 +28,6 @@ labels: enhancement
 
 - [ ] Staging verification after merge
 - [ ] Include in the next production release
-
-## Additional Context
-
-<!-- Wireframes, references, or any extra context -->
 
 ## Related
 

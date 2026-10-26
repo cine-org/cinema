@@ -1,7 +1,8 @@
 ---
 name: Bug Report
 about: Report a bug
-labels: bug
+title: '[Component] Bug: '
+type: Bug
 ---
 
 ## Description

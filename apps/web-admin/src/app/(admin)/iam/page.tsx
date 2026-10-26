@@ -1,5 +1,7 @@
+import { PageStub } from '../_components/page-stub';
+
 export const metadata = { title: 'IAM' };
 
 export default function IAMPage() {
-  return <h1 className="text-2xl font-semibold">IAM</h1>;
+  return <PageStub title="IAM" summary="Roles and permissions." />;
 }

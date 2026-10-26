@@ -47,7 +47,7 @@ These match the official manual installation page, which describes the same file
 
 `add button input label card` copies `src/components/ui/button.tsx`, `input.tsx`, `label.tsx`, `card.tsx`. It adds no packages.
 
-Components added so far in `web-admin`: `avatar`, `badge`, `button`, `card`, `checkbox`, `dropdown-menu`, `input`, `label`, `progress`, `select`, `separator`, `sheet`, `sidebar`, `skeleton`, `sonner`, `table`, `tabs`, `tooltip`. `sidebar` also adds `src/hooks/use-mobile.ts`; `sonner` adds the `sonner` and `next-themes` packages (`next-themes` only supplies `useTheme`; no theme provider is needed).
+Some components add packages (`sonner` adds `sonner` and `next-themes`). Each app lists the components it has added in its README.
 
 ## Adding components
 
@@ -62,7 +62,7 @@ The CLI reads `components.json` and writes to `src/components/ui/`. Import with 
 Components use semantic color names (`bg-background`, `text-primary`, `border-border`) instead of fixed Tailwind colors. Their values are CSS variables in `global.css`:
 
 - Change the brand color by editing `--primary` (and `--primary-foreground`) under `:root`.
-- Dark mode values live under `.dark`; it applies when an ancestor has the `dark` class.
+- Dark mode values live under `.dark`; it applies when an ancestor has the `dark` class. `next-themes` sets that class through `ThemeProvider` (`components/theme-provider.tsx`), and the root `<html>` carries `suppressHydrationWarning`.
 - `--radius` controls corner roundness for all components.
 
 ## Rules
@@ -71,8 +71,7 @@ Components use semantic color names (`bg-background`, `text-primary`, `border-bo
 - Generated files use double quotes and no semicolons. Run `pnpm exec prettier --write` on the generated files so they match repo formatting.
 - Edit files in `components/ui/` directly when needed; there is no package update. `add` can overwrite files you edited, including dependencies of the component you add (adding `command` replaced `input.tsx`). Commit or back up first, and diff afterwards.
 - Keep feature-specific UI out of `components/ui/`. It holds only shadcn primitives; see [Frontend Structure](frontend-structure.md).
-- `Sidebar` needs a `TooltipProvider` above it (wrap the layout once); `SidebarProvider` does not add one.
-- `src/hooks/use-mobile.ts` was edited after generation to use `useSyncExternalStore`, because the generated `useEffect` + `setState` version fails the `react-hooks/set-state-in-effect` lint rule. Keep that edit when re-running `add`.
-- `components/ui/input.tsx` was edited after generation: text stays `text-base` (16px) at every width (the default drops to `md:text-sm`), so iOS does not zoom on focus and phone and desktop match; height is `h-9`. Keep that edit when re-running `add input`.
-- `sonner` toasts need one `<Toaster />`, mounted in the admin shell (top right). Call `toast.success(...)` / `toast.error(...)` from client components for the result of an action.
+- Record every edit to a generated file in the app README, so it is kept when `add` runs again.
+- `global.css` gives `[data-slot='table-container']` a thin scrollbar; a wide table scrolls sideways inside that container.
+- `sonner` toasts need one `<Toaster />`, mounted once in the app shell. Call `toast.success(...)` / `toast.error(...)` from client components for the result of an action.
 - The Geist font is fetched from Google Fonts at build time, so the build needs network access.

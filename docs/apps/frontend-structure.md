@@ -46,6 +46,29 @@ Create these only when something needs them: `components/` (UI shared by two or 
   components that need state, effects, or browser APIs.
 - Server Components can be passed as `children` to Client Components.
 
+## Data and mutations
+
+- A route reads its data in `page.tsx` (server) and passes it down as props; components never
+  fetch on their own. Until an endpoint exists, the data is mock code in the route's `_data/`,
+  shaped like the api response, so the swap only touches `_data/`.
+- Every write a feature makes goes through one `_data/mutations.ts`, one function per api call,
+  each returning a `Result` (`lib/result.ts`). An unwired call returns `notWired(...)`; the caller
+  shows the outcome with `toastResult` (`lib/toast-result.ts`).
+- A Server Component cannot pass a function to a Client Component. A shared component takes its
+  save function as a prop, and the feature adds a small `'use client'` wrapper that binds the
+  mutation.
+
+## List pages
+
+- The list state (search, filters, sort, page, limit) lives in the URL, so a view can be shared and
+  survives a refresh. Params equal to their default are left out.
+- `page.tsx` parses `searchParams` into a typed query and asks for one page of rows; filtering,
+  sorting and paging happen behind that call, because the api pages its results.
+- Shared pieces: `lib/list-query.ts` (parsing helpers, paging) and `components/data-table/`
+  (sort header, pagination, debounced search, URL navigation). A feature keeps only its own
+  filters and columns.
+- Narrow screens drop columns instead of scrolling a table sideways.
+
 ## Naming and imports
 
 - File and folder names are kebab-case (`login-form.tsx`). Exports keep React naming
