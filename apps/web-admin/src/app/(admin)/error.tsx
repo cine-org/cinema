@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 
 type ErrorPageProps = {
   error: Error & { digest?: string };
@@ -15,14 +16,12 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   return (
     <div className="flex flex-col items-start gap-3">
       <h1 className="text-2xl font-semibold">Something went wrong</h1>
-      <p className="text-sm text-zinc-600">An unexpected error occurred. Please try again.</p>
-      <button
-        type="button"
-        onClick={reset}
-        className="h-10 rounded-lg bg-zinc-900 px-4 text-sm font-medium text-white hover:bg-zinc-800"
-      >
+      <p className="text-sm text-muted-foreground">
+        An unexpected error occurred. Please try again.
+      </p>
+      <Button size="lg" onClick={reset}>
         Try again
-      </button>
+      </Button>
     </div>
   );
 }
