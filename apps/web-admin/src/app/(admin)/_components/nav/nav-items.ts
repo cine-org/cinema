@@ -59,7 +59,15 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'System',
     items: [
-      { label: 'Users', href: '/users', icon: User },
+      {
+        label: 'Users',
+        href: '/users',
+        icon: User,
+        children: [
+          { label: 'Customers', href: '/users/customers' },
+          { label: 'Employees', href: '/users/employees' },
+        ],
+      },
       { label: 'IAM', href: '/iam', icon: ShieldCheck },
       { label: 'Audit log', href: '/audit-log', icon: ScrollText },
       { label: 'Settings', href: '/settings', icon: Settings },
