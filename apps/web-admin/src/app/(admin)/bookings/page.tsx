@@ -1,5 +1,7 @@
+import { PageStub } from '../_components/page-stub';
+
 export const metadata = { title: 'Bookings' };
 
 export default function BookingsPage() {
-  return <h1 className="text-2xl font-semibold">Bookings</h1>;
+  return <PageStub title="Bookings" summary="Bookings list and detail." />;
 }

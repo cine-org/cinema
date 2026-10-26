@@ -1,7 +1,8 @@
 ---
 name: Task
 about: Internal task, refactor, or maintenance work
-labels: chore
+title: '[Component] Task: '
+type: Task
 ---
 
 ## Description

@@ -1,5 +1,7 @@
+import { PageStub } from '../_components/page-stub';
+
 export const metadata = { title: 'Theaters' };
 
 export default function TheatersPage() {
-  return <h1 className="text-2xl font-semibold">Theaters</h1>;
+  return <PageStub title="Theaters" summary="Clusters, theaters, rooms and seat layouts." />;
 }

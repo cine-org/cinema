@@ -1,5 +1,7 @@
+import { PageStub } from '../_components/page-stub';
+
 export const metadata = { title: 'Showtimes' };
 
 export default function ShowtimesPage() {
-  return <h1 className="text-2xl font-semibold">Showtimes</h1>;
+  return <PageStub title="Showtimes" summary="Schedule of showtimes by theater and room." />;
 }

@@ -14,6 +14,7 @@ Purpose: quick context for humans and AI agents working in this repo.
 - [CI](workflow/ci.md): PR checks.
 - [Staging](workflow/staging.md): publish images and deploy to staging after each merge.
 - [Release](workflow/release.md): tag what staging runs and open the production PR.
+- [Issues](conventions/issues.md): titles, components, kinds of work and board fields.
 - [Rulesets](conventions/rulesets.md): branch, tag and merge rules on GitHub.
 
 ## Repo Areas
