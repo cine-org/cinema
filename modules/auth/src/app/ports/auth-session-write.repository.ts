@@ -1,13 +1,27 @@
-import type { AuthSession, AuthSessionRevokedReason, RefreshToken } from '../../domain';
+import type {
+  AuthSession,
+  AuthSessionRevokedReason,
+  AuthSessionSurface,
+  RefreshToken,
+} from '../../domain';
+import type { AccountGrant, AccountRole } from './account-write.repository';
 
 // What the Bearer guard needs to accept an access token's session.
 export type SessionGuardState = {
   readonly accountId: string;
+  readonly surface: AuthSessionSurface;
+  // The account's active role now, which may have changed since login.
+  readonly role: AccountGrant | null;
   readonly idleExpiresAt: Date;
   readonly absoluteExpiresAt: Date;
   readonly revokedAt: Date | null;
   readonly revokedReason: AuthSessionRevokedReason | null;
   readonly accountDeletedAt: Date | null;
+};
+
+// The account a refreshed session belongs to, as it is now.
+export type SessionOwner = {
+  readonly role: AccountRole | null;
 };
 
 // Abstract class, not interface: it survives to runtime, so it is its own DI token.
@@ -20,6 +34,7 @@ export abstract class AuthSessionWriteRepository {
   abstract start(
     accountId: string,
     verifiedHash: string,
+    surface: AuthSessionSurface,
     now: Date,
     open: (active: AuthSession[]) => AuthSession,
   ): Promise<AuthSession | null>;
@@ -28,7 +43,7 @@ export abstract class AuthSessionWriteRepository {
   // outcomes, or the save is rolled back.
   abstract modifyByTokenDigest<T>(
     digest: string,
-    change: (session: AuthSession, presented: RefreshToken) => T,
+    change: (session: AuthSession, presented: RefreshToken, owner: SessionOwner) => T,
   ): Promise<T | null>;
   // The revoke methods leave already revoked sessions, and their reason, as they are.
   // False if the token is unknown or its session was already revoked.

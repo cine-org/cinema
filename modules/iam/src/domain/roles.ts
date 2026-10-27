@@ -148,6 +148,11 @@ export const SYSTEM_ROLES: Record<SystemRoleKey, SystemRoleDefinition> = {
 
 export const SYSTEM_ROLE_KEYS = Object.keys(SYSTEM_ROLES) as SystemRoleKey[];
 
+// Customers (SELF) sign in on the customer side; every other scope is an internal account's.
+export function isInternalScope(scope: RoleScope): boolean {
+  return scope !== ROLE_SCOPE.SELF;
+}
+
 // System roles that receive a permission the first time it appears: locked roles always do.
 export function defaultHoldersOf(permission: PermissionKey): SystemRoleKey[] {
   return SYSTEM_ROLE_KEYS.filter((key) => {

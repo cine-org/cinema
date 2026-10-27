@@ -13,6 +13,11 @@ export type TheaterListFilter = {
   readonly province?: string;
   // Matches part of the name.
   readonly q?: string;
+  // Only the theaters of these clusters plus these theaters: what a cluster or theater role may see.
+  readonly within?: {
+    readonly clusterIds: readonly string[];
+    readonly theaterIds: readonly string[];
+  };
 };
 
 export type ListTheatersQueryProps = {

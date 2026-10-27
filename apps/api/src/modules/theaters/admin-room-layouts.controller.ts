@@ -2,7 +2,7 @@ import { Body, Get, Param, ParseUUIDPipe, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { IdResponseDto } from '@/common/dto';
 import { ApiSuccess } from '@/common/responses';
-import { AdminApi } from '@/common/surface';
+import { AdminApi, RequirePermission } from '@/common/surface';
 import {
   AdminRoomLayoutResponseDto,
   AdminRoomLayoutSummaryResponseDto,
@@ -17,6 +17,7 @@ export class AdminRoomLayoutsController {
   constructor(private readonly layouts: RoomLayoutsService) {}
 
   @Put('draft')
+  @RequirePermission('room-layouts:upsert-draft', { room: 'roomId' })
   @ApiSuccess(IdResponseDto, {
     description: 'Draft created or replaced; it is always the newest version.',
   })
@@ -29,6 +30,7 @@ export class AdminRoomLayoutsController {
   }
 
   @Get('draft')
+  @RequirePermission('room-layouts:read', { room: 'roomId' })
   @ApiSuccess(AdminRoomLayoutResponseDto, { description: 'The current draft with its seats.' })
   async findDraft(
     @Param('roomId', ParseUUIDPipe) roomId: string,
@@ -37,6 +39,7 @@ export class AdminRoomLayoutsController {
   }
 
   @Post('draft/publish')
+  @RequirePermission('room-layouts:publish', { room: 'roomId' })
   @ApiSuccess(IdResponseDto, {
     description: 'Draft published; the previous published version is retired.',
   })
@@ -45,6 +48,7 @@ export class AdminRoomLayoutsController {
   }
 
   @Get()
+  @RequirePermission('room-layouts:read', { room: 'roomId' })
   @ApiSuccess([AdminRoomLayoutSummaryResponseDto], { description: 'Every version, newest first.' })
   async list(
     @Param('roomId', ParseUUIDPipe) roomId: string,
@@ -54,6 +58,7 @@ export class AdminRoomLayoutsController {
   }
 
   @Get(':layoutId')
+  @RequirePermission('room-layouts:read', { room: 'roomId' })
   @ApiSuccess(AdminRoomLayoutResponseDto, { description: 'One version with its seats.' })
   async findById(
     @Param('roomId', ParseUUIDPipe) roomId: string,

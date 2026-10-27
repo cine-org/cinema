@@ -64,12 +64,20 @@ enum AuthSessionRevokedReason {
   PASSWORD_CHANGED
 }
 
+// Where a session signs in: customers on the user API, internal accounts on the admin API. Each
+// side has its own token audience, refresh cookie and session lifetime.
+enum AuthSessionSurface {
+  USER
+  ADMIN
+}
+
 // One login. Valid while revokedAt is null and now < idleExpiresAt and now < absoluteExpiresAt.
 // Each successful refresh sets lastRefreshedAt = now and
 // idleExpiresAt = min(now + idle TTL, absoluteExpiresAt). absoluteExpiresAt never changes.
 model AuthSession {
   id                String                    @id @default(uuid())
   accountId         String                    @map("account_id")
+  surface           AuthSessionSurface        @default(USER)
   createdAt         DateTime                  @default(now()) @map("created_at")
   lastRefreshedAt   DateTime                  @map("last_refreshed_at")
   idleExpiresAt     DateTime                  @map("idle_expires_at")

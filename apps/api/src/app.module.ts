@@ -1,5 +1,5 @@
 import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common';
-import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { CacheModule } from '@repo/cache';
 import { DatabaseModule } from '@repo/database';
 import { IamModule } from '@repo/iam';
@@ -9,7 +9,7 @@ import { ResponseEnvelopeInterceptor } from '@/common/interceptors';
 import { RequestValidationPipe } from '@/common/pipes';
 import { ConfigModule, ConfigService } from '@/config';
 import { HealthController } from '@/health.controller';
-import { AuthModule } from '@/modules/auth';
+import { AdminAccessGuard, AuthModule } from '@/modules/auth';
 import { TheatersModule } from '@/modules/theaters';
 import { UsersModule } from '@/modules/users';
 
@@ -47,6 +47,8 @@ import { UsersModule } from '@/modules/users';
   controllers: [HealthController],
   providers: [
     { provide: APP_FILTER, useClass: GlobalExceptionFilter },
+    // Every admin route needs an admin session unless marked otherwise.
+    { provide: APP_GUARD, useExisting: AdminAccessGuard },
     { provide: APP_INTERCEPTOR, useClass: ResponseEnvelopeInterceptor },
     { provide: APP_PIPE, useClass: RequestValidationPipe },
   ],

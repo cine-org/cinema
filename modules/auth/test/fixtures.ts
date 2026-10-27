@@ -64,6 +64,7 @@ export function startedSession(now = NOW): AuthSession {
   return AuthSession.start({
     id,
     accountId: ACCOUNT_ID,
+    surface: 'USER',
     refreshToken: refreshToken(id, now),
     now,
     userAgent: 'test',
@@ -75,6 +76,7 @@ export function sessionWith(overrides: Partial<AuthSessionProps> = {}): AuthSess
   return AuthSession.restore({
     id: crypto.randomUUID(),
     accountId: ACCOUNT_ID,
+    surface: 'USER',
     createdAt: NOW,
     lastRefreshedAt: NOW,
     idleExpiresAt: at(NOW, 30 * 24 * 3600),

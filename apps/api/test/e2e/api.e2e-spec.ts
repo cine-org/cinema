@@ -5,6 +5,8 @@ import { DatabaseWriteClient } from '@repo/database';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { setupHttp } from '@/bootstrap';
+import { ConfigService } from '@/config';
+import { internalAccounts } from './support/internal-accounts';
 
 type Body = { success: boolean; code?: string; requestId?: string; data?: Record<string, unknown> };
 
@@ -22,7 +24,11 @@ describe('API (e2e)', () => {
   };
   const account = { email: `e2e-${crypto.randomUUID()}@cinema.test`, password: 'correct-horse' };
 
+  const admins = internalAccounts(() => app);
+  let adminToken = '';
   const api = () => request(app.getHttpServer());
+  const adminApi = () =>
+    request.agent(app.getHttpServer()).set('Authorization', `Bearer ${adminToken}`);
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
@@ -36,15 +42,21 @@ describe('API (e2e)', () => {
 
     await api().post('/api/v1/auth/register').send(account).expect(202);
     userId = (await db.user.findUniqueOrThrow({ where: { email: account.email } })).id;
+    const origin = new URL(app.get(ConfigService).app.apiOrigin).origin;
+    ({ accessToken: adminToken } = await admins.signIn(
+      (await admins.create('SUPER_ADMIN')).email,
+      origin,
+    ));
   });
 
   afterAll(async () => {
+    await admins.cleanup();
     await db.user.deleteMany({ where: { email: account.email } });
     await app.close();
   });
 
   it('reads the registered user back', async () => {
-    const res = await api().get(`/api/v1/admin/users/${userId}`).expect(200);
+    const res = await adminApi().get(`/api/v1/admin/users/${userId}`).expect(200);
 
     expect(res.body).toMatchObject({
       success: true,
@@ -73,7 +85,7 @@ describe('API (e2e)', () => {
   });
 
   it('returns 404 with a request id for an unknown user', async () => {
-    const res = await api().get(`/api/v1/admin/users/${crypto.randomUUID()}`).expect(404);
+    const res = await adminApi().get(`/api/v1/admin/users/${crypto.randomUUID()}`).expect(404);
 
     expect(res.body).toMatchObject({ success: false, code: 'USER.NOT_FOUND' });
     expect((res.body as Body).requestId).toBeDefined();

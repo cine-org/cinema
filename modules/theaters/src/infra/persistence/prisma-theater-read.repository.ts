@@ -52,8 +52,11 @@ export class PrismaTheaterReadRepository implements TheaterReadRepository {
   }
 }
 
-function toWhere({ status, province, q }: TheaterListFilter): Prisma.TheaterWhereInput {
+function toWhere({ status, province, q, within }: TheaterListFilter): Prisma.TheaterWhereInput {
   return {
+    OR: within
+      ? [{ clusterId: { in: [...within.clusterIds] } }, { id: { in: [...within.theaterIds] } }]
+      : undefined,
     status,
     province: province ? { equals: province, mode: 'insensitive' } : undefined,
     name: q ? { contains: q, mode: 'insensitive' } : undefined,

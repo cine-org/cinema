@@ -14,7 +14,9 @@ import type { Page } from '@repo/common';
 import { IdResponseDto } from '@/common/dto';
 import { toSortField } from '@/common/requests';
 import { ApiPaginated, ApiSuccess } from '@/common/responses';
-import { AdminApi } from '@/common/surface';
+import type { TheaterScope } from '@repo/iam';
+import { TheaterScopeParam } from '@/modules/auth';
+import { AdminApi, RequirePermission } from '@/common/surface';
 import {
   AdminCreateTheaterRequestDto,
   AdminListTheatersQueryDto,
@@ -29,6 +31,7 @@ export class AdminTheatersController {
   constructor(private readonly theaters: TheatersService) {}
 
   @Post()
+  @RequirePermission('theaters:create')
   @ApiSuccess(IdResponseDto, {
     status: HttpStatus.CREATED,
     description: 'Theater created as a draft.',
@@ -38,10 +41,20 @@ export class AdminTheatersController {
   }
 
   @Get()
+  @RequirePermission('theaters:read', 'list')
   @ApiPaginated(AdminTheaterResponseDto, { description: 'Theaters, newest first.' })
-  async list(@Query() query: AdminListTheatersQueryDto): Promise<Page<AdminTheaterResponseDto>> {
+  async list(
+    @Query() query: AdminListTheatersQueryDto,
+    @TheaterScopeParam() scope: TheaterScope,
+  ): Promise<Page<AdminTheaterResponseDto>> {
     const page = await this.theaters.list({
-      filter: { status: query.status, province: query.province, q: query.q },
+      filter: {
+        status: query.status,
+        province: query.province,
+        q: query.q,
+        // A cluster or theater role sees its own theaters only.
+        within: scope.all ? undefined : scope,
+      },
       sort: toSortField(query.sort),
       page: { page: query.page, limit: query.limit },
     });
@@ -50,18 +63,21 @@ export class AdminTheatersController {
   }
 
   @Get('slug/:slug')
+  @RequirePermission('theaters:read', { theaterSlug: 'slug' })
   @ApiSuccess(AdminTheaterResponseDto, { description: 'A single theater by slug.' })
   async findBySlug(@Param('slug') slug: string): Promise<AdminTheaterResponseDto> {
     return AdminTheaterResponseDto.from(await this.theaters.findBySlug(slug));
   }
 
   @Get(':id')
+  @RequirePermission('theaters:read', { theater: 'id' })
   @ApiSuccess(AdminTheaterResponseDto, { description: 'A single theater.' })
   async findById(@Param('id', ParseUUIDPipe) id: string): Promise<AdminTheaterResponseDto> {
     return AdminTheaterResponseDto.from(await this.theaters.findById(id));
   }
 
   @Patch(':id')
+  @RequirePermission('theaters:update', { theater: 'id' })
   @ApiSuccess(IdResponseDto, { description: 'Theater updated.' })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -71,24 +87,28 @@ export class AdminTheatersController {
   }
 
   @Post(':id/activate')
+  @RequirePermission('theaters:activate', { theater: 'id' })
   @ApiSuccess(IdResponseDto, { description: 'Theater activated.' })
   async activate(@Param('id', ParseUUIDPipe) id: string): Promise<IdResponseDto> {
     return this.theaters.activate(id);
   }
 
   @Post(':id/deactivate')
+  @RequirePermission('theaters:deactivate', { theater: 'id' })
   @ApiSuccess(IdResponseDto, { description: 'Theater deactivated.' })
   async deactivate(@Param('id', ParseUUIDPipe) id: string): Promise<IdResponseDto> {
     return this.theaters.deactivate(id);
   }
 
   @Post(':id/close')
+  @RequirePermission('theaters:close', { theater: 'id' })
   @ApiSuccess(IdResponseDto, { description: 'Theater closed for good.' })
   async close(@Param('id', ParseUUIDPipe) id: string): Promise<IdResponseDto> {
     return this.theaters.close(id);
   }
 
   @Delete(':id')
+  @RequirePermission('theaters:delete', { theater: 'id' })
   @ApiSuccess(IdResponseDto, { description: 'Draft theater deleted.' })
   async delete(@Param('id', ParseUUIDPipe) id: string): Promise<IdResponseDto> {
     return this.theaters.delete(id);

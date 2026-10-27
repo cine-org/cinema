@@ -16,7 +16,8 @@ function surfaceController(surface: ApiSurface, path: string): ClassDecorator {
   );
 }
 
-// Routes under /admin so they never collide with a user route of the same resource.
+// Routes under /admin so they never collide with a user route of the same resource. Closed by
+// default: AdminAccessGuard requires an admin session (see admin-access.decorator).
 export function AdminApi(path = ''): ClassDecorator {
   return applyDecorators(surfaceController('admin', `admin/${path}`), ApiBearerAuth('bearer'));
 }

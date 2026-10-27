@@ -12,7 +12,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { IdResponseDto } from '@/common/dto';
 import { ApiSuccess } from '@/common/responses';
-import { AdminApi } from '@/common/surface';
+import { AdminApi, RequirePermission } from '@/common/surface';
 import {
   AdminCreateRoomRequestDto,
   AdminListRoomsQueryDto,
@@ -28,6 +28,7 @@ export class AdminRoomsController {
   constructor(private readonly rooms: RoomsService) {}
 
   @Post('theaters/:theaterId/rooms')
+  @RequirePermission('rooms:create', { theater: 'theaterId' })
   @ApiSuccess(IdResponseDto, {
     status: HttpStatus.CREATED,
     description: 'Room created as a draft.',
@@ -40,6 +41,7 @@ export class AdminRoomsController {
   }
 
   @Get('theaters/:theaterId/rooms')
+  @RequirePermission('rooms:read', { theater: 'theaterId' })
   @ApiSuccess([AdminRoomResponseDto], { description: 'Rooms of a theater, by code.' })
   async list(
     @Param('theaterId', ParseUUIDPipe) theaterId: string,
@@ -50,12 +52,14 @@ export class AdminRoomsController {
   }
 
   @Get('rooms/:id')
+  @RequirePermission('rooms:read', { room: 'id' })
   @ApiSuccess(AdminRoomResponseDto, { description: 'A single room.' })
   async findById(@Param('id', ParseUUIDPipe) id: string): Promise<AdminRoomResponseDto> {
     return AdminRoomResponseDto.from(await this.rooms.findById(id));
   }
 
   @Patch('rooms/:id')
+  @RequirePermission('rooms:update', { room: 'id' })
   @ApiSuccess(IdResponseDto, { description: 'Room updated.' })
   async update(
     @Param('id', ParseUUIDPipe) id: string,
@@ -65,24 +69,28 @@ export class AdminRoomsController {
   }
 
   @Post('rooms/:id/activate')
+  @RequirePermission('rooms:activate', { room: 'id' })
   @ApiSuccess(IdResponseDto, { description: 'Room activated; needs a published layout.' })
   async activate(@Param('id', ParseUUIDPipe) id: string): Promise<IdResponseDto> {
     return this.rooms.activate(id);
   }
 
   @Post('rooms/:id/deactivate')
+  @RequirePermission('rooms:deactivate', { room: 'id' })
   @ApiSuccess(IdResponseDto, { description: 'Room deactivated.' })
   async deactivate(@Param('id', ParseUUIDPipe) id: string): Promise<IdResponseDto> {
     return this.rooms.deactivate(id);
   }
 
   @Post('rooms/:id/close')
+  @RequirePermission('rooms:close', { room: 'id' })
   @ApiSuccess(IdResponseDto, { description: 'Room closed for good.' })
   async close(@Param('id', ParseUUIDPipe) id: string): Promise<IdResponseDto> {
     return this.rooms.close(id);
   }
 
   @Delete('rooms/:id')
+  @RequirePermission('rooms:delete', { room: 'id' })
   @ApiSuccess(IdResponseDto, { description: 'Draft room deleted.' })
   async delete(@Param('id', ParseUUIDPipe) id: string): Promise<IdResponseDto> {
     return this.rooms.delete(id);

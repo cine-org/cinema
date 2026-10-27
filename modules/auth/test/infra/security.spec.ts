@@ -44,34 +44,66 @@ describe('JoseAccessTokenIssuer', () => {
   const issuer = new JoseAccessTokenIssuer(key());
 
   it('round-trips the account and session', async () => {
-    const issued = await issuer.issue({ accountId: 'a1', sessionId: 's1', now: new Date() });
+    const issued = await issuer.issue({
+      accountId: 'a1',
+      sessionId: 's1',
+      surface: 'USER',
+      now: new Date(),
+    });
 
-    await expect(issuer.verify(issued.token)).resolves.toEqual({
+    await expect(issuer.verify(issued.token, 'USER')).resolves.toEqual({
       accountId: 'a1',
       sessionId: 's1',
     });
   });
 
   it('expires after the access token lifetime', async () => {
-    const issued = await issuer.issue({ accountId: 'a1', sessionId: 's1', now: NOW });
+    const issued = await issuer.issue({
+      accountId: 'a1',
+      sessionId: 's1',
+      surface: 'USER',
+      now: NOW,
+    });
 
     expect(issued.expiresAt).toEqual(at(NOW, AUTH_SESSION_POLICY.accessTokenTtlSeconds));
-    await expect(issuer.verify(issued.token)).resolves.toBeNull();
+    await expect(issuer.verify(issued.token, 'USER')).resolves.toBeNull();
+  });
+
+  it('accepts a token only on its own surface', async () => {
+    const admin = await issuer.issue({
+      accountId: 'a1',
+      sessionId: 's1',
+      surface: 'ADMIN',
+      now: new Date(),
+    });
+
+    await expect(issuer.verify(admin.token, 'ADMIN')).resolves.toMatchObject({ accountId: 'a1' });
+    await expect(issuer.verify(admin.token, 'USER')).resolves.toBeNull();
   });
 
   it('rejects a token signed with another key', async () => {
     const other = new JoseAccessTokenIssuer(key());
-    const issued = await other.issue({ accountId: 'a1', sessionId: 's1', now: new Date() });
+    const issued = await other.issue({
+      accountId: 'a1',
+      sessionId: 's1',
+      surface: 'USER',
+      now: new Date(),
+    });
 
-    await expect(issuer.verify(issued.token)).resolves.toBeNull();
+    await expect(issuer.verify(issued.token, 'USER')).resolves.toBeNull();
   });
 
   it('rejects a tampered token', async () => {
-    const { token } = await issuer.issue({ accountId: 'a1', sessionId: 's1', now: new Date() });
+    const { token } = await issuer.issue({
+      accountId: 'a1',
+      sessionId: 's1',
+      surface: 'USER',
+      now: new Date(),
+    });
     const [header, , signature] = token.split('.');
     const payload = Buffer.from(JSON.stringify({ sub: 'a2', sid: 's1' })).toString('base64url');
 
-    await expect(issuer.verify(`${header}.${payload}.${signature}`)).resolves.toBeNull();
+    await expect(issuer.verify(`${header}.${payload}.${signature}`, 'USER')).resolves.toBeNull();
   });
 
   it('rejects a token without a session id', async () => {
@@ -84,7 +116,7 @@ describe('JoseAccessTokenIssuer', () => {
       .setExpirationTime('5m')
       .sign(Buffer.from(secret, 'base64'));
 
-    await expect(new JoseAccessTokenIssuer(secret).verify(token)).resolves.toBeNull();
+    await expect(new JoseAccessTokenIssuer(secret).verify(token, 'USER')).resolves.toBeNull();
   });
 
   it('refuses a short key', () => {

@@ -15,6 +15,7 @@ import {
   type EmailCode,
   type EmailCodePurpose,
 } from '../../domain';
+import { ACTIVE_ROLE } from './active-role';
 import { PrismaAccountMapper } from './prisma-account.mapper';
 import { transactionWithLockTimeout } from './transaction-with-lock-timeout';
 
@@ -40,10 +41,20 @@ export class PrismaAccountWriteRepository implements AccountWriteRepository {
   }
 
   async findLoginCredentials(email: Email): Promise<LoginCredentials | null> {
-    return this.db.user.findFirst({
+    const row = await this.db.user.findFirst({
       where: { email: email.value, deletedAt: null },
-      select: { id: true, passwordHash: true, isEmailVerified: true },
+      select: {
+        id: true,
+        passwordHash: true,
+        isEmailVerified: true,
+        roleAssignments: ACTIVE_ROLE,
+      },
     });
+    if (!row) return null;
+
+    const { roleAssignments, ...credentials } = row;
+    const active = roleAssignments[0];
+    return { ...credentials, role: active ? { key: active.role.key, scope: active.scope } : null };
   }
 
   async findOwnerOfPasswordReset(resetId: string): Promise<{ accountId: string } | null> {

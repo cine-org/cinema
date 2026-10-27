@@ -10,9 +10,36 @@ describe('AuthSession', () => {
 
     expect(session.isActiveAt(NOW)).toBe(true);
     expect(session.lastRefreshedAt).toEqual(NOW);
-    expect(session.idleExpiresAt).toEqual(at(NOW, AUTH_SESSION_POLICY.idleTtlSeconds));
-    expect(session.absoluteExpiresAt).toEqual(at(NOW, AUTH_SESSION_POLICY.absoluteTtlSeconds));
+    expect(session.idleExpiresAt).toEqual(
+      at(NOW, AUTH_SESSION_POLICY.lifetimes.USER.idleTtlSeconds),
+    );
+    expect(session.absoluteExpiresAt).toEqual(
+      at(NOW, AUTH_SESSION_POLICY.lifetimes.USER.absoluteTtlSeconds),
+    );
     expect(session.issuedRefreshToken?.sessionId).toBe(session.id);
+  });
+
+  it('gives admin sessions a shorter lifetime', () => {
+    const id = AuthSession.newId();
+    const admin = AuthSession.start({
+      id,
+      accountId: 'a1',
+      surface: 'ADMIN',
+      refreshToken: refreshToken(id),
+      now: NOW,
+      userAgent: null,
+      ipAddress: null,
+    });
+
+    expect(admin.idleExpiresAt).toEqual(
+      at(NOW, AUTH_SESSION_POLICY.lifetimes.ADMIN.idleTtlSeconds),
+    );
+    expect(admin.absoluteExpiresAt).toEqual(
+      at(NOW, AUTH_SESSION_POLICY.lifetimes.ADMIN.absoluteTtlSeconds),
+    );
+    expect(AUTH_SESSION_POLICY.lifetimes.ADMIN.absoluteTtlSeconds).toBeLessThan(
+      AUTH_SESSION_POLICY.lifetimes.USER.idleTtlSeconds,
+    );
   });
 
   it.each([
@@ -35,7 +62,9 @@ describe('AuthSession', () => {
       expect(presented.consumedAt).toEqual(later);
       expect(session.issuedRefreshToken).toBe(next);
       expect(session.lastRefreshedAt).toEqual(later);
-      expect(session.idleExpiresAt).toEqual(at(later, AUTH_SESSION_POLICY.idleTtlSeconds));
+      expect(session.idleExpiresAt).toEqual(
+        at(later, AUTH_SESSION_POLICY.lifetimes.USER.idleTtlSeconds),
+      );
     });
 
     it('never extends idle expiry past the absolute expiry', () => {

@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseWriteClient, type Prisma } from '@repo/database';
-import type { AuthSessionWriteRepository, SessionGuardState } from '../../app';
-import type { AuthSession, AuthSessionRevokedReason, RefreshToken } from '../../domain';
+import type { AuthSessionWriteRepository, SessionGuardState, SessionOwner } from '../../app';
+import type {
+  AuthSession,
+  AuthSessionRevokedReason,
+  AuthSessionSurface,
+  RefreshToken,
+} from '../../domain';
+import { ACTIVE_GRANT, ACTIVE_ROLE } from './active-role';
 import { PrismaAuthSessionMapper } from './prisma-auth-session.mapper';
 import { transactionWithLockTimeout } from './transaction-with-lock-timeout';
 
@@ -14,22 +20,37 @@ export class PrismaAuthSessionWriteRepository implements AuthSessionWriteReposit
       where: { id: sessionId },
       select: {
         accountId: true,
+        surface: true,
         idleExpiresAt: true,
         absoluteExpiresAt: true,
         revokedAt: true,
         revokedReason: true,
-        account: { select: { deletedAt: true } },
+        account: { select: { deletedAt: true, roleAssignments: ACTIVE_GRANT } },
       },
     });
     if (!row) return null;
 
     const { account, ...session } = row;
-    return { ...session, accountDeletedAt: account.deletedAt };
+    const grant = account.roleAssignments[0];
+    return {
+      ...session,
+      role: grant
+        ? {
+            key: grant.role.key,
+            scope: grant.scope,
+            clusterId: grant.clusterId,
+            theaterId: grant.theaterId,
+            permissions: grant.role.permissions.map((p) => p.permissionKey),
+          }
+        : null,
+      accountDeletedAt: account.deletedAt,
+    };
   }
 
   async start(
     accountId: string,
     verifiedHash: string,
+    surface: AuthSessionSurface,
     now: Date,
     open: (active: AuthSession[]) => AuthSession,
   ): Promise<AuthSession | null> {
@@ -42,9 +63,11 @@ export class PrismaAuthSessionWriteRepository implements AuthSessionWriteReposit
         FOR NO KEY UPDATE`;
       if (locked.length === 0) return null;
 
+      // The limit counts sessions of the side being signed in on.
       const rows = await tx.authSession.findMany({
         where: {
           accountId,
+          surface,
           revokedAt: null,
           idleExpiresAt: { gt: now },
           absoluteExpiresAt: { gt: now },
@@ -72,17 +95,21 @@ export class PrismaAuthSessionWriteRepository implements AuthSessionWriteReposit
 
   async modifyByTokenDigest<T>(
     digest: string,
-    change: (session: AuthSession, presented: RefreshToken) => T,
+    change: (session: AuthSession, presented: RefreshToken, owner: SessionOwner) => T,
   ): Promise<T | null> {
     return transactionWithLockTimeout(this.db, async (tx) => {
       const found = await tx.authRefreshToken.findUnique({
         where: { tokenDigest: digest },
         select: {
           sessionId: true,
-          session: { select: { account: { select: { deletedAt: true } } } },
+          session: {
+            select: { account: { select: { deletedAt: true, roleAssignments: ACTIVE_ROLE } } },
+          },
         },
       });
       if (!found || found.session.account.deletedAt) return null;
+      const active = found.session.account.roleAssignments[0];
+      const owner = { role: active ? { key: active.role.key, scope: active.scope } : null };
 
       // Concurrent refreshes of one session run one after the other: the later one sees the
       // token already consumed.
@@ -95,7 +122,7 @@ export class PrismaAuthSessionWriteRepository implements AuthSessionWriteReposit
       const session = PrismaAuthSessionMapper.toSession(row);
       const presented = PrismaAuthSessionMapper.toRefreshToken(tokenRow);
 
-      const result = change(session, presented);
+      const result = change(session, presented, owner);
       await save(tx, session, row, presented, tokenRow.consumedAt);
       return result;
     });

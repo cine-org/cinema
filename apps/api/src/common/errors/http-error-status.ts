@@ -1,6 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
 import { AUTH_ERROR_CODE, type AuthErrorCode } from '@repo/auth';
 import { COMMON_ERROR_CODE, type CommonErrorCode } from '@repo/common';
+import { IAM_ERROR_CODE, type IamErrorCode } from '@repo/iam';
 import {
   ROOM_ERROR_CODE,
   SEAT_ERROR_CODE,
@@ -15,6 +16,7 @@ import { USER_ERROR_CODE, type UserErrorCode } from '@repo/users';
 export type AppErrorCode =
   | CommonErrorCode
   | AuthErrorCode
+  | IamErrorCode
   | TheaterErrorCode
   | RoomErrorCode
   | SeatErrorCode
@@ -46,6 +48,8 @@ export const ERROR_CODE_HTTP_STATUS: Record<AppErrorCode, HttpStatus> = {
   [AUTH_ERROR_CODE.SESSION_NOT_FOUND]: HttpStatus.NOT_FOUND,
   [AUTH_ERROR_CODE.INVALID_EMAIL_OTP]: HttpStatus.BAD_REQUEST,
   [AUTH_ERROR_CODE.OTP_ATTEMPTS_EXCEEDED]: HttpStatus.TOO_MANY_REQUESTS,
+
+  [IAM_ERROR_CODE.PERMISSION_DENIED]: HttpStatus.FORBIDDEN,
 
   [THEATER_ERROR_CODE.NOT_FOUND]: HttpStatus.NOT_FOUND,
   [THEATER_ERROR_CODE.SLUG_TAKEN]: HttpStatus.CONFLICT,

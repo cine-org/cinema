@@ -22,12 +22,15 @@ import {
   type LoginLimiter,
   type PasswordHasher,
   type RefreshTokenProtector,
+  type LoginCredentials,
   type SessionGuardState,
+  type SessionOwner,
 } from '../../src/app';
 import {
   AuthSession,
   EMAIL_CODE_PURPOSE,
   type Account,
+  type AuthSessionSurface,
   type RefreshOutcome,
   type RefreshToken,
 } from '../../src/domain';
@@ -59,6 +62,7 @@ function sessionsStub() {
       async (
         _a: string,
         _h: string,
+        _s: AuthSessionSurface,
         _n: Date,
         open: (active: AuthSession[]) => AuthSession,
       ): Promise<AuthSession | null> => open([]),
@@ -92,7 +96,8 @@ beforeEach(() => vi.clearAllMocks());
 
 describe('LoginHandler', () => {
   const login = (deps: {
-    credentials?: { id: string; passwordHash: string; isEmailVerified: boolean } | null;
+    credentials?: LoginCredentials | null;
+    surface?: AuthSessionSurface;
     verifies?: boolean;
     limit?: typeof allowed | typeof limited;
     sessions?: ReturnType<typeof sessionsStub>;
@@ -112,11 +117,19 @@ describe('LoginHandler', () => {
     );
     const run = () =>
       handler.execute(
-        new LoginCommand({ email: EMAIL, password: 'pw', userAgent: null, ipAddress: null }),
+        new LoginCommand({
+          email: EMAIL,
+          password: 'pw',
+          surface: deps.surface ?? 'USER',
+          userAgent: null,
+          ipAddress: null,
+        }),
       );
     return { run, hasher, sessions, accounts };
   };
-  const verified = { id: ACCOUNT_ID, passwordHash: 'h', isEmailVerified: true };
+  const customer = { key: 'CUSTOMER', scope: 'SELF' } as const;
+  const manager = { key: 'THEATER_MANAGER', scope: 'THEATER' } as const;
+  const verified = { id: ACCOUNT_ID, passwordHash: 'h', isEmailVerified: true, role: customer };
 
   it('opens a session and returns both tokens', async () => {
     const { run, sessions } = login({ credentials: verified });
@@ -128,9 +141,38 @@ describe('LoginHandler', () => {
     expect(sessions.start).toHaveBeenCalledWith(
       ACCOUNT_ID,
       'h',
+      'USER',
       expect.any(Date),
       expect.any(Function),
     );
+  });
+
+  it('signs an internal account in on the admin side', async () => {
+    const { run, sessions } = login({
+      credentials: { ...verified, role: manager },
+      surface: 'ADMIN',
+    });
+
+    await run();
+
+    expect(accessTokens.issue).toHaveBeenCalledWith(expect.objectContaining({ surface: 'ADMIN' }));
+    expect(sessions.start).toHaveBeenCalledWith(
+      ACCOUNT_ID,
+      'h',
+      'ADMIN',
+      expect.any(Date),
+      expect.any(Function),
+    );
+  });
+
+  it.each<[string, AuthSessionSurface, LoginCredentials['role']]>([
+    ['an internal account on the user side', 'USER', manager],
+    ['a customer on the admin side', 'ADMIN', customer],
+    ['an account without a role', 'USER', null],
+  ])('refuses %s like a wrong password', async (_, surface, role) => {
+    await expect(
+      login({ credentials: { ...verified, role }, surface }).run(),
+    ).rejects.toMatchObject({ code: 'AUTH.INVALID_CREDENTIALS' });
   });
 
   it('runs the hash check even when the email is unknown', async () => {
@@ -176,18 +218,24 @@ describe('LoginHandler', () => {
 });
 
 describe('RefreshHandler', () => {
-  const refreshWith = (outcome: RefreshOutcome | null, revokedReason: string | null = null) => {
+  const refreshWith = (
+    outcome: RefreshOutcome | null,
+    revokedReason: string | null = null,
+    opts: { sessionSurface?: AuthSessionSurface; role?: SessionOwner['role'] } = {},
+  ) => {
     const sessions = sessionsStub();
     sessions.modifyByTokenDigest.mockImplementation(
-      async (_d: string, change: (s: AuthSession, t: RefreshToken) => unknown) => {
+      async (_d: string, change: (s: AuthSession, t: RefreshToken, o: SessionOwner) => unknown) => {
         if (outcome === null) return null;
         const session = sessionWith({
+          surface: opts.sessionSurface ?? 'USER',
           revokedAt: revokedReason ? new Date() : null,
           revokedReason: revokedReason as never,
         });
         const presented = refreshToken(session.id);
         vi.spyOn(session, 'refresh').mockReturnValue(outcome);
-        return change(session, presented);
+        const role = 'role' in opts ? opts.role! : { key: 'CUSTOMER', scope: 'SELF' as const };
+        return change(session, presented, { role });
       },
     );
     const handler = new RefreshHandler(
@@ -196,7 +244,8 @@ describe('RefreshHandler', () => {
       accessTokens,
     );
     return {
-      run: (token: string | null) => handler.execute(new RefreshCommand({ refreshToken: token })),
+      run: (token: string | null, surface: AuthSessionSurface = 'USER') =>
+        handler.execute(new RefreshCommand({ refreshToken: token, surface })),
       sessions,
     };
   };
@@ -206,6 +255,15 @@ describe('RefreshHandler', () => {
       accessToken: 'access',
       refreshToken: 'refresh',
     });
+  });
+
+  it('refuses a session of the other side, or an account whose role moved away', async () => {
+    await expect(
+      refreshWith('ROTATED', null, { sessionSurface: 'ADMIN' }).run('t', 'USER'),
+    ).rejects.toMatchObject({ code: 'AUTH.INVALID_REFRESH_TOKEN' });
+    await expect(
+      refreshWith('ROTATED', null, { role: { key: 'USHER', scope: 'THEATER' } }).run('t'),
+    ).rejects.toMatchObject({ code: 'AUTH.INVALID_REFRESH_TOKEN' });
   });
 
   it.each([null, 'malformed'])(
@@ -238,6 +296,8 @@ describe('AuthenticateHandler', () => {
   const claims = { accountId: ACCOUNT_ID, sessionId: 's1' };
   const state = (overrides: Partial<SessionGuardState> = {}): SessionGuardState => ({
     accountId: ACCOUNT_ID,
+    surface: 'USER',
+    role: { key: 'CUSTOMER', scope: 'SELF', clusterId: null, theaterId: null, permissions: [] },
     idleExpiresAt: at(new Date(), 3600),
     absoluteExpiresAt: at(new Date(), 7200),
     revokedAt: null,
@@ -252,11 +312,14 @@ describe('AuthenticateHandler', () => {
     return new AuthenticateHandler(
       tokens,
       sessions as unknown as AuthSessionWriteRepository,
-    ).execute(new AuthenticateQuery({ accessToken: 'token' }));
+    ).execute(new AuthenticateQuery({ accessToken: 'token', surface: 'USER' }));
   };
 
   it('accepts a valid token of an active session', async () => {
-    await expect(authenticate(claims, state())).resolves.toEqual(claims);
+    await expect(authenticate(claims, state())).resolves.toEqual({
+      ...claims,
+      role: { key: 'CUSTOMER', scope: 'SELF', clusterId: null, theaterId: null, permissions: [] },
+    });
   });
 
   it.each<[string, typeof claims | null, SessionGuardState | null]>([
@@ -264,6 +327,15 @@ describe('AuthenticateHandler', () => {
     ['an unknown session', claims, null],
     ['a session of another account', claims, state({ accountId: 'someone-else' })],
     ['a deleted account', claims, state({ accountDeletedAt: new Date() })],
+    ['a session of the other side', claims, state({ surface: 'ADMIN' })],
+    ['an account whose role was revoked', claims, state({ role: null })],
+    [
+      'an account whose role moved side',
+      claims,
+      state({
+        role: { key: 'USHER', scope: 'THEATER', clusterId: null, theaterId: 't1', permissions: [] },
+      }),
+    ],
   ])('rejects %s as an invalid token', async (_, verified, guard) => {
     await expect(authenticate(verified, guard)).rejects.toMatchObject({
       code: 'AUTH.INVALID_ACCESS_TOKEN',

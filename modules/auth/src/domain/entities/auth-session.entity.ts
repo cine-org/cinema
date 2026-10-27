@@ -1,4 +1,4 @@
-import { AUTH_SESSION_POLICY } from '../policies';
+import { AUTH_SESSION_POLICY, type AuthSessionSurface } from '../policies';
 
 export const AUTH_SESSION_REVOKED_REASONS = [
   'LOGOUT',
@@ -71,6 +71,7 @@ export class RefreshToken {
 export type AuthSessionProps = {
   readonly id: string;
   readonly accountId: string;
+  readonly surface: AuthSessionSurface;
   readonly createdAt: Date;
   lastRefreshedAt: Date;
   idleExpiresAt: Date;
@@ -102,19 +103,22 @@ export class AuthSession {
   static start(input: {
     id: string;
     accountId: string;
+    surface: AuthSessionSurface;
     refreshToken: RefreshToken;
     now: Date;
     userAgent: string | null;
     ipAddress: string | null;
   }): AuthSession {
-    const absoluteExpiresAt = addSeconds(input.now, AUTH_SESSION_POLICY.absoluteTtlSeconds);
+    const lifetime = AUTH_SESSION_POLICY.lifetimes[input.surface];
+    const absoluteExpiresAt = addSeconds(input.now, lifetime.absoluteTtlSeconds);
     return new AuthSession(
       {
         id: input.id,
         accountId: input.accountId,
+        surface: input.surface,
         createdAt: input.now,
         lastRefreshedAt: input.now,
-        idleExpiresAt: idleExpiry(input.now, absoluteExpiresAt),
+        idleExpiresAt: idleExpiry(input.now, lifetime.idleTtlSeconds, absoluteExpiresAt),
         absoluteExpiresAt,
         revokedAt: null,
         revokedReason: null,
@@ -166,7 +170,11 @@ export class AuthSession {
     presented.consume(now);
     this.issued = next;
     this.props.lastRefreshedAt = now;
-    this.props.idleExpiresAt = idleExpiry(now, this.props.absoluteExpiresAt);
+    this.props.idleExpiresAt = idleExpiry(
+      now,
+      AUTH_SESSION_POLICY.lifetimes[this.props.surface].idleTtlSeconds,
+      this.props.absoluteExpiresAt,
+    );
     return 'ROTATED';
   }
 
@@ -187,6 +195,10 @@ export class AuthSession {
 
   get accountId(): string {
     return this.props.accountId;
+  }
+
+  get surface(): AuthSessionSurface {
+    return this.props.surface;
   }
 
   get createdAt(): Date {
@@ -226,7 +238,7 @@ function addSeconds(date: Date, seconds: number): Date {
   return new Date(date.getTime() + seconds * 1000);
 }
 
-function idleExpiry(now: Date, absoluteExpiresAt: Date): Date {
-  const idle = addSeconds(now, AUTH_SESSION_POLICY.idleTtlSeconds);
+function idleExpiry(now: Date, idleTtlSeconds: number, absoluteExpiresAt: Date): Date {
+  const idle = addSeconds(now, idleTtlSeconds);
   return idle < absoluteExpiresAt ? idle : absoluteExpiresAt;
 }

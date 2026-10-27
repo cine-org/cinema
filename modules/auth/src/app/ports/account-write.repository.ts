@@ -1,4 +1,5 @@
 import type { Email } from '@repo/common';
+import type { RoleScope } from '@repo/iam';
 import type { Account } from '../../domain';
 
 export type RegistrationAccount = {
@@ -7,10 +8,28 @@ export type RegistrationAccount = {
   readonly deletedAt: Date | null;
 };
 
+// The active role decides which side the account signs in on.
+// The active role and the scope it was granted at.
+export type AccountRole = {
+  readonly key: string;
+  readonly scope: RoleScope;
+};
+
+// The active role with what it allows now: what admin routes check.
+export type AccountGrant = AccountRole & {
+  // Set for a CLUSTER grant.
+  readonly clusterId: string | null;
+  // Set for a THEATER grant.
+  readonly theaterId: string | null;
+  // As stored: an admin's edits apply on the next request.
+  readonly permissions: readonly string[];
+};
+
 export type LoginCredentials = {
   readonly id: string;
   readonly passwordHash: string;
   readonly isEmailVerified: boolean;
+  readonly role: AccountRole | null;
 };
 
 // What change-password checks the current password against.

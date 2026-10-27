@@ -6,6 +6,7 @@ export class PrismaAuthSessionMapper {
     return AuthSession.restore({
       id: row.id,
       accountId: row.accountId,
+      surface: row.surface,
       createdAt: row.createdAt,
       lastRefreshedAt: row.lastRefreshedAt,
       idleExpiresAt: row.idleExpiresAt,
@@ -31,6 +32,7 @@ export class PrismaAuthSessionMapper {
     return {
       id: session.id,
       accountId: session.accountId,
+      surface: session.surface,
       createdAt: session.createdAt,
       lastRefreshedAt: session.lastRefreshedAt,
       idleExpiresAt: session.idleExpiresAt,

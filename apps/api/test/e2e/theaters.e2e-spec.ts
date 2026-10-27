@@ -4,6 +4,8 @@ import { DatabaseWriteClient } from '@repo/database';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
 import { setupHttp } from '@/bootstrap';
+import { ConfigService } from '@/config';
+import { internalAccounts } from './support/internal-accounts';
 
 type Body<T = Record<string, unknown>> = {
   success: boolean;
@@ -23,7 +25,10 @@ describe('Theaters (e2e)', () => {
   const theaterIds: string[] = [];
   const seatTypeCodes: string[] = [];
 
-  const api = () => request(app.getHttpServer());
+  const admins = internalAccounts(() => app);
+  let adminToken = '';
+  // Admin routes need an ADMIN session; user routes ignore the header.
+  const api = () => request.agent(app.getHttpServer()).set('Authorization', `Bearer ${adminToken}`);
   const url = (path: string) => `/api/v1/admin${path}`;
   const userUrl = (path: string) => `/api/v1${path}`;
 
@@ -80,9 +85,15 @@ describe('Theaters (e2e)', () => {
     app = moduleRef.createNestApplication();
     setupHttp(app);
     await app.init();
+    const origin = new URL(app.get(ConfigService).app.apiOrigin).origin;
+    ({ accessToken: adminToken } = await admins.signIn(
+      (await admins.create('SUPER_ADMIN')).email,
+      origin,
+    ));
   });
 
   afterAll(async () => {
+    await admins.cleanup();
     const db = app.get(DatabaseWriteClient);
     await db.roomLayout.deleteMany({ where: { room: { theaterId: { in: theaterIds } } } });
     await db.room.deleteMany({ where: { theaterId: { in: theaterIds } } });

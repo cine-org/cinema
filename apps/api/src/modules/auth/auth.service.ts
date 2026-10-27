@@ -6,6 +6,8 @@ import {
   ChangePasswordHandler,
   ForgotPasswordCommand,
   ForgotPasswordHandler,
+  GetAccountProfileHandler,
+  GetAccountProfileQuery,
   ListSessionsHandler,
   ListSessionsQuery,
   LoginCommand,
@@ -27,6 +29,9 @@ import {
   VerifyEmailCommand,
   VerifyEmailHandler,
   type AccessTokenClaims,
+  type AccountProfile,
+  type AuthenticatedAccount,
+  type AuthSessionSurface,
   type ChangePasswordCommandProps,
   type LoginCommandProps,
   type PasswordResetAccepted,
@@ -53,6 +58,7 @@ export class AuthService {
     private readonly revokeSessionHandler: RevokeSessionHandler,
     private readonly authenticateHandler: AuthenticateHandler,
     private readonly listSessionsHandler: ListSessionsHandler,
+    private readonly getProfileHandler: GetAccountProfileHandler,
     private readonly forgotPasswordHandler: ForgotPasswordHandler,
     private readonly resetPasswordHandler: ResetPasswordHandler,
     private readonly changePasswordHandler: ChangePasswordHandler,
@@ -88,8 +94,8 @@ export class AuthService {
     return this.loginHandler.execute(new LoginCommand(props));
   }
 
-  async refresh(refreshToken: string | null): Promise<SessionTokens> {
-    return this.refreshHandler.execute(new RefreshCommand({ refreshToken }));
+  async refresh(refreshToken: string | null, surface: AuthSessionSurface): Promise<SessionTokens> {
+    return this.refreshHandler.execute(new RefreshCommand({ refreshToken, surface }));
   }
 
   async logout(refreshToken: string | null): Promise<void> {
@@ -104,13 +110,20 @@ export class AuthService {
     return this.revokeSessionHandler.execute(new RevokeSessionCommand({ accountId, sessionId }));
   }
 
-  async authenticate(accessToken: string): Promise<AccessTokenClaims> {
-    return this.authenticateHandler.execute(new AuthenticateQuery({ accessToken }));
+  async authenticate(
+    accessToken: string,
+    surface: AuthSessionSurface,
+  ): Promise<AuthenticatedAccount> {
+    return this.authenticateHandler.execute(new AuthenticateQuery({ accessToken, surface }));
   }
 
   async listSessions(auth: AccessTokenClaims): Promise<SessionListItem[]> {
     return this.listSessionsHandler.execute(
       new ListSessionsQuery({ accountId: auth.accountId, currentSessionId: auth.sessionId }),
     );
+  }
+
+  async profile(accountId: string): Promise<AccountProfile> {
+    return this.getProfileHandler.execute(new GetAccountProfileQuery({ accountId }));
   }
 }

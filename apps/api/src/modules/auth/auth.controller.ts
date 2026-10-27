@@ -41,10 +41,8 @@ import {
   VerifyEmailResponseDto,
 } from './dto';
 import { AuthService } from './auth.service';
+import { clientInfo } from './client-info';
 import { RefreshCookie } from './refresh-cookie';
-
-// Stored for the session list only; capped so a huge header cannot bloat the row.
-const MAX_USER_AGENT_LENGTH = 512;
 
 @ApiTags('auth')
 @UserApi('auth')
@@ -97,8 +95,8 @@ export class AuthController {
     const tokens = await this.auth.login({
       email: body.email,
       password: body.password,
-      userAgent: request.headers['user-agent']?.slice(0, MAX_USER_AGENT_LENGTH) ?? null,
-      ipAddress: request.ip ?? null,
+      surface: 'USER',
+      ...clientInfo(request),
     });
     return this.issue(response, tokens);
   }
@@ -115,7 +113,7 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<AccessTokenResponseDto> {
     try {
-      return this.issue(response, await this.auth.refresh(this.cookie.read(request)));
+      return this.issue(response, await this.auth.refresh(this.cookie.read(request), 'USER'));
     } catch (error) {
       // This cookie can never refresh again. A reused token keeps the cookie: it already holds
       // the new token.

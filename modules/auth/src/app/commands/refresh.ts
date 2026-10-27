@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import {
+  canSignInOn,
   InvalidRefreshTokenException,
   RefreshTokenReusedException,
   SessionEndedException,
   type AuthSessionRevokedReason,
+  type AuthSessionSurface,
   type RefreshOutcome,
 } from '../../domain';
 import {
@@ -15,7 +17,9 @@ import {
 import type { SessionTokens } from './session-tokens';
 
 export class RefreshCommand {
-  constructor(readonly props: { readonly refreshToken: string | null }) {}
+  constructor(
+    readonly props: { readonly refreshToken: string | null; readonly surface: AuthSessionSurface },
+  ) {}
 }
 
 @Injectable()
@@ -28,18 +32,22 @@ export class RefreshHandler {
 
   // Throws only after the outcome is saved, so a replay always revokes the session.
   async execute(command: RefreshCommand): Promise<SessionTokens> {
-    const { refreshToken } = command.props;
+    const { refreshToken, surface } = command.props;
     const digest = refreshToken ? this.refreshTokens.digest(refreshToken) : null;
     if (!digest) throw new InvalidRefreshTokenException();
 
     const now = new Date();
-    const result = await this.sessions.modifyByTokenDigest(digest, (session, presented) => {
+    const result = await this.sessions.modifyByTokenDigest(digest, (session, presented, owner) => {
+      // A cookie of the other side, or an account whose role no longer belongs here: refused
+      // without touching the session.
+      if (session.surface !== surface || !canSignInOn(surface, owner.role)) return null;
       const next = this.refreshTokens.issue({ sessionId: session.id, now });
       return {
         outcome: session.refresh(presented, next.refreshToken, now),
         next,
         accountId: session.accountId,
         sessionId: session.id,
+        surface: session.surface,
         idleExpiresAt: session.idleExpiresAt,
         revokedReason: session.revokedReason,
       };
@@ -55,6 +63,7 @@ export class RefreshHandler {
       next: IssuedRefreshToken;
       accountId: string;
       sessionId: string;
+      surface: AuthSessionSurface;
       idleExpiresAt: Date;
     },
     now: Date,
@@ -62,6 +71,7 @@ export class RefreshHandler {
     const access = await this.accessTokens.issue({
       accountId: rotated.accountId,
       sessionId: rotated.sessionId,
+      surface: rotated.surface,
       now,
     });
     return {

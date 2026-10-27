@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Email, TooManyRequestsException } from '@repo/common';
-import { AuthSession, EmailNotVerifiedException, InvalidCredentialsException } from '../../domain';
+import {
+  AuthSession,
+  canSignInOn,
+  EmailNotVerifiedException,
+  InvalidCredentialsException,
+  type AuthSessionSurface,
+} from '../../domain';
 import {
   AccessTokenIssuer,
   AccountWriteRepository,
@@ -14,6 +20,7 @@ import type { SessionTokens } from './session-tokens';
 export type LoginCommandProps = {
   readonly email: string;
   readonly password: string;
+  readonly surface: AuthSessionSurface;
   readonly userAgent: string | null;
   readonly ipAddress: string | null;
 };
@@ -34,7 +41,7 @@ export class LoginHandler {
   ) {}
 
   async execute(command: LoginCommand): Promise<SessionTokens> {
-    const { password, userAgent, ipAddress } = command.props;
+    const { password, surface, userAgent, ipAddress } = command.props;
     const email = Email.create(command.props.email);
 
     // Before the hash, so the limit also caps the Argon2 work spent on one email.
@@ -45,7 +52,10 @@ export class LoginHandler {
 
     const credentials = await this.accounts.findLoginCredentials(email);
     const matches = await this.hasher.verify(credentials?.passwordHash ?? null, password);
-    if (!credentials || !matches) throw new InvalidCredentialsException();
+    // The wrong side answers like a wrong password: it does not tell customers from staff.
+    if (!credentials || !matches || !canSignInOn(surface, credentials.role)) {
+      throw new InvalidCredentialsException();
+    }
     if (!credentials.isEmailVerified) throw new EmailNotVerifiedException();
 
     const now = new Date();
@@ -54,12 +64,14 @@ export class LoginHandler {
     const session = await this.sessions.start(
       credentials.id,
       credentials.passwordHash,
+      surface,
       now,
       (active) => {
         AuthSession.makeRoomForLogin(active, now);
         return AuthSession.start({
           id: sessionId,
           accountId: credentials.id,
+          surface,
           refreshToken: issued.refreshToken,
           now,
           userAgent,
@@ -73,6 +85,7 @@ export class LoginHandler {
     const access = await this.accessTokens.issue({
       accountId: session.accountId,
       sessionId: session.id,
+      surface,
       now,
     });
     return {

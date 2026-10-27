@@ -1,6 +1,381 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/v1/admin/auth/login": {
+      "post": {
+        "operationId": "AdminAuthController_login_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminLoginRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signed in; the refresh token is set as an HttpOnly cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminAccessTokenResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: missing or untrusted Origin header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; see the Retry-After header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-auth"
+        ]
+      }
+    },
+    "/api/v1/admin/auth/refresh": {
+      "post": {
+        "operationId": "AdminAuthController_refresh_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "New access token; the cookie now holds a new refresh token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminAccessTokenResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: missing or untrusted Origin header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; see the Retry-After header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "admin_refresh_token": []
+          }
+        ],
+        "tags": [
+          "admin-auth"
+        ]
+      }
+    },
+    "/api/v1/admin/auth/logout": {
+      "post": {
+        "operationId": "AdminAuthController_logout_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Session of the cookie revoked, if any; the cookie is cleared either way.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminLogoutResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: missing or untrusted Origin header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; see the Retry-After header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "admin_refresh_token": []
+          }
+        ],
+        "tags": [
+          "admin-auth"
+        ]
+      }
+    },
+    "/api/v1/admin/auth/logout-all": {
+      "post": {
+        "operationId": "AdminAuthController_logoutAll_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Every session of the account revoked, this one included; cookie cleared.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminLogoutAllResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-auth"
+        ]
+      }
+    },
+    "/api/v1/admin/auth/me": {
+      "get": {
+        "operationId": "AdminAuthController_me_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The signed-in account: its role, where it applies and its permissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminMeResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-auth"
+        ]
+      }
+    },
+    "/api/v1/admin/auth/sessions": {
+      "get": {
+        "operationId": "AdminAuthController_listSessions_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Active sessions of the account, most recently refreshed first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AdminSessionResponseDto"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-auth"
+        ]
+      }
+    },
+    "/api/v1/admin/auth/sessions/{id}": {
+      "delete": {
+        "operationId": "AdminAuthController_revokeSession_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session revoked. Revoking the current one ends this access token too.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-auth"
+        ]
+      }
+    },
     "/api/v1/admin/theaters": {
       "post": {
         "operationId": "AdminTheatersController_create_v1",
@@ -1636,6 +2011,31 @@
       }
     },
     "schemas": {
+      "AdminAccessTokenResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Send as `Authorization: Bearer <accessToken>`."
+          },
+          "tokenType": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "accessTokenExpiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Refresh before this."
+          }
+        },
+        "required": [
+          "accessToken",
+          "tokenType",
+          "accessTokenExpiresAt"
+        ]
+      },
       "AdminCreateRoomRequestDto": {
         "type": "object",
         "properties": {
@@ -1730,6 +2130,142 @@
           "streetAddress",
           "ward",
           "province"
+        ]
+      },
+      "AdminLoginRequestDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "AdminLogoutAllResponseDto": {
+        "type": "object",
+        "properties": {
+          "revokedSessions": {
+            "type": "number",
+            "description": "Sessions revoked, the current one included."
+          }
+        },
+        "required": [
+          "revokedSessions"
+        ]
+      },
+      "AdminLogoutResponseDto": {
+        "type": "object",
+        "properties": {
+          "loggedOut": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          }
+        },
+        "required": [
+          "loggedOut"
+        ]
+      },
+      "AdminMeAccessDto": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "example": [
+              "theaters:read",
+              "rooms:create"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scope": {
+            "$ref": "#/components/schemas/AdminMeScopeDto"
+          }
+        },
+        "required": [
+          "permissions",
+          "scope"
+        ]
+      },
+      "AdminMeResponseDto": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "$ref": "#/components/schemas/AdminMeUserDto"
+          },
+          "access": {
+            "$ref": "#/components/schemas/AdminMeAccessDto"
+          }
+        },
+        "required": [
+          "user",
+          "access"
+        ]
+      },
+      "AdminMeScopeDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "global",
+              "cluster",
+              "theater"
+            ]
+          },
+          "clusterIds": {
+            "description": "Set for cluster.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "theaterIds": {
+            "description": "Set for theater.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "AdminMeUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Lê Minh Quân",
+            "description": "Full name, or the email without one."
+          },
+          "role": {
+            "type": "string",
+            "example": "Theater manager",
+            "description": "Display name of the role."
+          },
+          "initials": {
+            "type": "string",
+            "example": "LQ"
+          }
+        },
+        "required": [
+          "name",
+          "role",
+          "initials"
         ]
       },
       "AdminRoomLayoutResponseDto": {
@@ -2021,6 +2557,46 @@
           "width"
         ]
       },
+      "AdminSessionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the login happened."
+          },
+          "lastRefreshedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "userAgent": {
+            "type": "string",
+            "nullable": true,
+            "description": "As sent at login; informational."
+          },
+          "ipAddress": {
+            "type": "string",
+            "nullable": true,
+            "description": "IP at login; informational."
+          },
+          "isCurrent": {
+            "type": "boolean",
+            "description": "The session of the access token making this request."
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "lastRefreshedAt",
+          "userAgent",
+          "ipAddress",
+          "isCurrent"
+        ]
+      },
       "AdminTheaterResponseDto": {
         "type": "object",
         "properties": {
@@ -2260,6 +2836,7 @@
           "AUTH.SESSION_NOT_FOUND",
           "AUTH.INVALID_EMAIL_OTP",
           "AUTH.OTP_ATTEMPTS_EXCEEDED",
+          "IAM.PERMISSION_DENIED",
           "THEATER.NOT_FOUND",
           "THEATER.SLUG_TAKEN",
           "THEATER.CLOSED",

@@ -5,6 +5,7 @@ import {
   AuthSession,
   AuthSessionWriteRepository,
   RefreshTokenProtector,
+  type AuthSessionSurface,
 } from '@repo/auth';
 import { CacheModule } from '@repo/cache';
 import { DatabaseModule, DatabaseWriteClient } from '@repo/database';
@@ -57,14 +58,20 @@ export async function setupAuth() {
   }
 
   // Starts a session the way login does; returns it with its plain refresh token.
-  async function login(accountId: string, passwordHash = 'hash-1', now = new Date()) {
+  async function login(
+    accountId: string,
+    passwordHash = 'hash-1',
+    now = new Date(),
+    surface: AuthSessionSurface = 'USER',
+  ) {
     const id = AuthSession.newId();
     const issued = refreshTokens.issue({ sessionId: id, now });
-    const session = await sessions.start(accountId, passwordHash, now, (active) => {
+    const session = await sessions.start(accountId, passwordHash, surface, now, (active) => {
       AuthSession.makeRoomForLogin(active, now);
       return AuthSession.start({
         id,
         accountId,
+        surface,
         refreshToken: issued.refreshToken,
         now,
         userAgent: 'int',

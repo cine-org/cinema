@@ -1,10 +1,13 @@
 import { errors, jwtVerify, SignJWT } from 'jose';
 import type { AccessTokenClaims, AccessTokenIssuer, IssuedAccessToken } from '../../app';
-import { AUTH_SESSION_POLICY } from '../../domain';
+import { AUTH_SESSION_POLICY, type AuthSessionSurface } from '../../domain';
 
 const ALGORITHM = 'HS256';
 const ISSUER = 'cinema-api';
-const AUDIENCE = 'cinema-user';
+const AUDIENCES: Record<AuthSessionSurface, string> = {
+  USER: 'cinema-user',
+  ADMIN: 'cinema-admin',
+};
 const MIN_KEY_BYTES = 32;
 
 // HS256: the api both signs and verifies, so one shared secret is enough.
@@ -20,26 +23,28 @@ export class JoseAccessTokenIssuer implements AccessTokenIssuer {
     this.key = new Uint8Array(key);
   }
 
-  async issue(input: AccessTokenClaims & { now: Date }): Promise<IssuedAccessToken> {
+  async issue(
+    input: AccessTokenClaims & { surface: AuthSessionSurface; now: Date },
+  ): Promise<IssuedAccessToken> {
     const issuedAt = Math.floor(input.now.getTime() / 1000);
     const expiresAt = issuedAt + AUTH_SESSION_POLICY.accessTokenTtlSeconds;
     const token = await new SignJWT({ sid: input.sessionId })
       .setProtectedHeader({ alg: ALGORITHM, typ: 'JWT' })
       .setSubject(input.accountId)
       .setIssuer(ISSUER)
-      .setAudience(AUDIENCE)
+      .setAudience(AUDIENCES[input.surface])
       .setIssuedAt(issuedAt)
       .setExpirationTime(expiresAt)
       .sign(this.key);
     return { token, expiresAt: new Date(expiresAt * 1000) };
   }
 
-  async verify(token: string): Promise<AccessTokenClaims | null> {
+  async verify(token: string, surface: AuthSessionSurface): Promise<AccessTokenClaims | null> {
     try {
       const { payload } = await jwtVerify(token, this.key, {
         algorithms: [ALGORITHM],
         issuer: ISSUER,
-        audience: AUDIENCE,
+        audience: AUDIENCES[surface],
         requiredClaims: ['sub', 'sid', 'exp'],
       });
       if (typeof payload.sub !== 'string' || typeof payload.sid !== 'string') return null;
