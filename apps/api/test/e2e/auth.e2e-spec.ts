@@ -93,6 +93,17 @@ describe('Auth (e2e)', () => {
     await app.close();
   });
 
+  it('registers every account as a customer', async () => {
+    const email = newEmail();
+    await api().post(`${AUTH}/register`).send({ email, password: PASSWORD }).expect(202);
+
+    const roles = await db.roleAssignment.findMany({
+      where: { user: { email }, revokedAt: null },
+      select: { scope: true, role: { select: { key: true } } },
+    });
+    expect(roles).toEqual([{ scope: 'SELF', role: { key: 'CUSTOMER' } }]);
+  });
+
   describe('login', () => {
     it('returns an access token and sets the refresh cookie', async () => {
       const email = await registerVerified();

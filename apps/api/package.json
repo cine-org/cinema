@@ -31,6 +31,7 @@
     "@repo/cache": "workspace:*",
     "@repo/common": "workspace:*",
     "@repo/database": "workspace:*",
+    "@repo/iam": "workspace:*",
     "@repo/rate-limit": "workspace:*",
     "@repo/theaters": "workspace:*",
     "@repo/users": "workspace:*",

@@ -22,6 +22,10 @@ model User {
   authChallenges AuthChallenge[]
   authSessions   AuthSession[]
 
+  roleAssignments        RoleAssignment[] @relation("RoleAssignmentUser")
+  grantedRoleAssignments RoleAssignment[] @relation("RoleAssignmentGrantedBy")
+  revokedRoleAssignments RoleAssignment[] @relation("RoleAssignmentRevokedBy")
+
   @@map("users")
 }
 
@@ -99,6 +103,102 @@ model AuthRefreshToken {
   @@map("auth_refresh_tokens")
 }
 
+// Where a role assignment applies. SELF is the customer's own data; the others are internal.
+enum RoleScope {
+  GLOBAL
+  CLUSTER
+  THEATER
+  SELF
+}
+
+// Mirror of the permission catalog in code (modules/iam), synced on startup. A key no longer in
+// code is marked deprecated, never deleted: role_permissions may still point at it.
+model Permission {
+  key          String    @id
+  module       String
+  description  String
+  createdAt    DateTime  @default(now()) @map("created_at")
+  deprecatedAt DateTime? @map("deprecated_at")
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+// System roles are created by the migration and kept by the sync; custom roles by an admin.
+// A locked role (SUPER_ADMIN) holds every permission and cannot be edited. `scopes` lists where
+// the role may be granted; each assignment picks one of them.
+model Role {
+  id        String      @id @default(uuid())
+  key       String      @unique
+  name      String
+  scopes    RoleScope[]
+  isSystem  Boolean     @default(false) @map("is_system")
+  isLocked  Boolean     @default(false) @map("is_locked")
+  createdAt DateTime    @default(now()) @map("created_at")
+  updatedAt DateTime    @updatedAt @map("updated_at")
+
+  permissions RolePermission[]
+  assignments RoleAssignment[]
+
+  @@map("roles")
+}
+
+model RolePermission {
+  roleId        String   @map("role_id")
+  permissionKey String   @map("permission_key")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionKey], references: [key], onDelete: Restrict)
+
+  @@id([roleId, permissionKey])
+  @@index([permissionKey])
+  @@map("role_permissions")
+}
+
+// Who holds which role, and where: clusterId for CLUSTER, theaterId for THEATER, neither
+// otherwise (check constraint in the migration). Revoking sets revokedAt; rows are kept for
+// history. At most one active role per account (partial unique index in the migration).
+model RoleAssignment {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  roleId      String    @map("role_id")
+  scope       RoleScope
+  clusterId   String?   @map("cluster_id")
+  theaterId   String?   @map("theater_id")
+  grantedById String?   @map("granted_by_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  revokedAt   DateTime? @map("revoked_at")
+  revokedById String?   @map("revoked_by_id")
+
+  user      User     @relation("RoleAssignmentUser", fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  cluster   Cluster? @relation(fields: [clusterId], references: [id], onDelete: Restrict)
+  theater   Theater? @relation(fields: [theaterId], references: [id], onDelete: Restrict)
+  grantedBy User?    @relation("RoleAssignmentGrantedBy", fields: [grantedById], references: [id], onDelete: SetNull)
+  revokedBy User?    @relation("RoleAssignmentRevokedBy", fields: [revokedById], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([roleId])
+  @@index([clusterId])
+  @@index([theaterId])
+  @@map("role_assignments")
+}
+
+// A group of theaters, usually a city; cluster roles work on every theater in theirs.
+model Cluster {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  theaters        Theater[]
+  roleAssignments RoleAssignment[]
+
+  @@map("clusters")
+}
+
 enum TheaterStatus {
   DRAFT
   ACTIVE
@@ -115,11 +215,16 @@ model Theater {
   province      String
   phoneNumber   String?       @map("phone_number")
   status        TheaterStatus @default(DRAFT)
+  // Null until the theater is placed in a cluster.
+  clusterId     String?       @map("cluster_id")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
 
-  rooms Room[]
+  cluster         Cluster?         @relation(fields: [clusterId], references: [id], onDelete: Restrict)
+  rooms           Room[]
+  roleAssignments RoleAssignment[]
 
+  @@index([clusterId])
   @@map("theaters")
 }
 

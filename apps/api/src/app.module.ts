@@ -2,6 +2,7 @@ import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { CacheModule } from '@repo/cache';
 import { DatabaseModule } from '@repo/database';
+import { IamModule } from '@repo/iam';
 import { GlobalExceptionFilter } from '@/common/filters';
 import { requestIdMiddleware } from '@/common/middleware';
 import { ResponseEnvelopeInterceptor } from '@/common/interceptors';
@@ -38,6 +39,7 @@ import { UsersModule } from '@/modules/users';
         requireConnectionOnStartup: false,
       }),
     }),
+    IamModule,
     AuthModule,
     TheatersModule,
     UsersModule,
