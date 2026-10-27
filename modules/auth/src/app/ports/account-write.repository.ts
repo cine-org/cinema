@@ -1,5 +1,5 @@
 import type { Email } from '@repo/common';
-import type { RoleScope } from '@repo/iam';
+import type { GrantPlace, RoleScope } from '@repo/iam';
 import type { Account } from '../../domain';
 
 export type RegistrationAccount = {
@@ -38,6 +38,26 @@ export type PasswordCheck = {
   readonly passwordHash: string;
 };
 
+// The role a new account starts with: CUSTOMER on registration, an internal role on invitation.
+export type NewAccountRole = GrantPlace & {
+  readonly roleKey: string;
+  // Null for the system (registration, the first admin).
+  readonly grantedById: string | null;
+};
+
+// An existing account with the email being invited, and its active role.
+export type InvitationTarget = {
+  readonly id: string;
+  readonly isEmailVerified: boolean;
+  readonly deletedAt: Date | null;
+  readonly role: (GrantPlace & { readonly key: string }) | null;
+};
+
+export type RoleSummary = {
+  readonly key: string;
+  readonly scopes: readonly RoleScope[];
+};
+
 export type VerificationOwner = {
   readonly accountId: string;
   readonly email: Email;
@@ -56,8 +76,17 @@ export abstract class AccountWriteRepository {
   // Null if the account is deleted.
   abstract findPasswordCheck(accountId: string): Promise<PasswordCheck | null>;
   abstract findOwnerOfVerification(verificationId: string): Promise<VerificationOwner | null>;
-  // Saves a new account with its first code.
-  abstract create(account: Account): Promise<void>;
+  // Saves a new account with its first code and its role.
+  abstract create(account: Account, role: NewAccountRole): Promise<void>;
+  abstract findInvitationTarget(email: Email): Promise<InvitationTarget | null>;
+  // Account of an invitation code, unless deleted.
+  abstract findOwnerOfInvitation(invitationId: string): Promise<{ accountId: string } | null>;
+  abstract findRole(key: string): Promise<RoleSummary | null>;
+  // Whether a theater exists and is not closed, so staff can be invited to it.
+  abstract isOpenTheater(theaterId: string): Promise<boolean>;
+  abstract clusterExists(clusterId: string): Promise<boolean>;
+  // Creates a verified SUPER_ADMIN, unless an active one exists. Serialized against itself.
+  abstract createFirstAdmin(account: Account): Promise<'CREATED' | 'ADMIN_EXISTS'>;
   // Locks the account, applies `change` and saves it in one transaction, ending its sessions if
   // the change asks to. Null if the account is gone. `change` must not throw for business
   // outcomes, or the save is rolled back.

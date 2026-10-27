@@ -4,9 +4,12 @@ import { DatabaseWriteClient, PRISMA_ERROR_CODE, Prisma, throwIfPrismaError } fr
 import { ROLE_SCOPE, SYSTEM_ROLE } from '@repo/iam';
 import type {
   AccountWriteRepository,
+  InvitationTarget,
   LoginCredentials,
+  NewAccountRole,
   PasswordCheck,
   RegistrationAccount,
+  RoleSummary,
   VerificationOwner,
 } from '../../app';
 import {
@@ -104,19 +107,21 @@ export class PrismaAccountWriteRepository implements AccountWriteRepository {
     };
   }
 
-  async create(account: Account): Promise<void> {
-    const code = account.latestVerification;
-    if (!code) throw new Error('A new account needs a verification code');
+  async create(account: Account, grant: NewAccountRole): Promise<void> {
+    const code = account.latestVerification ?? account.latestInvitation;
+    if (!code) throw new Error('A new account needs its first code');
 
     try {
       await this.db.$transaction([
         this.db.user.create({ data: PrismaAccountMapper.toUserCreate(account) }),
-        // Everyone who registers is a customer; internal accounts come by invitation.
         this.db.roleAssignment.create({
           data: {
             user: { connect: { id: account.id } },
-            role: { connect: { key: SYSTEM_ROLE.CUSTOMER } },
-            scope: ROLE_SCOPE.SELF,
+            role: { connect: { key: grant.roleKey } },
+            scope: grant.scope,
+            ...(grant.clusterId ? { cluster: { connect: { id: grant.clusterId } } } : {}),
+            ...(grant.theaterId ? { theater: { connect: { id: grant.theaterId } } } : {}),
+            ...(grant.grantedById ? { grantedBy: { connect: { id: grant.grantedById } } } : {}),
           },
         }),
         this.db.authChallenge.create({
@@ -133,6 +138,96 @@ export class PrismaAccountWriteRepository implements AccountWriteRepository {
     }
   }
 
+  async findInvitationTarget(email: Email): Promise<InvitationTarget | null> {
+    const row = await this.db.user.findUnique({
+      where: { email: email.value },
+      select: {
+        id: true,
+        isEmailVerified: true,
+        deletedAt: true,
+        roleAssignments: {
+          where: { revokedAt: null },
+          take: 1,
+          select: {
+            scope: true,
+            clusterId: true,
+            theaterId: true,
+            role: { select: { key: true } },
+          },
+        },
+      },
+    });
+    if (!row) return null;
+
+    const { roleAssignments, ...account } = row;
+    const active = roleAssignments[0];
+    return {
+      ...account,
+      role: active
+        ? {
+            key: active.role.key,
+            scope: active.scope,
+            clusterId: active.clusterId,
+            theaterId: active.theaterId,
+          }
+        : null,
+    };
+  }
+
+  async findOwnerOfInvitation(invitationId: string): Promise<{ accountId: string } | null> {
+    const row = await this.db.authChallenge.findUnique({
+      where: { id: invitationId },
+      select: { purpose: true, account: { select: { id: true, deletedAt: true } } },
+    });
+    if (!row || row.purpose !== EMAIL_CODE_PURPOSE.ACCOUNT_INVITATION || row.account.deletedAt) {
+      return null;
+    }
+    return { accountId: row.account.id };
+  }
+
+  async findRole(key: string): Promise<RoleSummary | null> {
+    return this.db.role.findUnique({ where: { key }, select: { key: true, scopes: true } });
+  }
+
+  async isOpenTheater(theaterId: string): Promise<boolean> {
+    const theater = await this.db.theater.findUnique({
+      where: { id: theaterId },
+      select: { status: true },
+    });
+    return theater !== null && theater.status !== 'CLOSED';
+  }
+
+  async clusterExists(clusterId: string): Promise<boolean> {
+    return (await this.db.cluster.count({ where: { id: clusterId } })) > 0;
+  }
+
+  async createFirstAdmin(account: Account): Promise<'CREATED' | 'ADMIN_EXISTS'> {
+    return this.db.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext('iam:first-admin'))`;
+      const admins = await tx.roleAssignment.count({
+        where: {
+          revokedAt: null,
+          role: { key: SYSTEM_ROLE.SUPER_ADMIN },
+          user: { deletedAt: null },
+        },
+      });
+      if (admins > 0) return 'ADMIN_EXISTS';
+
+      await tx.user.create({
+        data: {
+          ...PrismaAccountMapper.toUserCreate(account),
+          roleAssignments: {
+            create: {
+              role: { connect: { key: SYSTEM_ROLE.SUPER_ADMIN } },
+              scope: ROLE_SCOPE.GLOBAL,
+            },
+          },
+        },
+      });
+      return 'CREATED';
+    });
+  }
+
   async modify<T>(accountId: string, change: (account: Account) => T): Promise<T | null> {
     return transactionWithLockTimeout(this.db, async (tx) => {
       // NO KEY UPDATE: blocks other auth changes but not inserts that reference the user.
@@ -142,8 +237,12 @@ export class PrismaAccountWriteRepository implements AccountWriteRepository {
 
       const user = await tx.user.findUniqueOrThrow({ where: { id: accountId } });
       if (!user.email) return null;
-      const [verification, passwordReset] = await Promise.all(
-        [EMAIL_CODE_PURPOSE.EMAIL_VERIFICATION, EMAIL_CODE_PURPOSE.PASSWORD_RESET].map((purpose) =>
+      const [verification, passwordReset, invitation] = await Promise.all(
+        [
+          EMAIL_CODE_PURPOSE.EMAIL_VERIFICATION,
+          EMAIL_CODE_PURPOSE.PASSWORD_RESET,
+          EMAIL_CODE_PURPOSE.ACCOUNT_INVITATION,
+        ].map((purpose) =>
           tx.authChallenge.findFirst({
             ...latestCode(purpose),
             where: { accountId, purpose },
@@ -153,7 +252,11 @@ export class PrismaAccountWriteRepository implements AccountWriteRepository {
 
       const account = PrismaAccountMapper.toAccount(
         { ...user, email: user.email },
-        { verification: verification ?? null, passwordReset: passwordReset ?? null },
+        {
+          verification: verification ?? null,
+          passwordReset: passwordReset ?? null,
+          invitation: invitation ?? null,
+        },
       );
       const before = snapshot(account);
       const result = change(account);
@@ -177,6 +280,7 @@ type Snapshot = {
   readonly isEmailVerified: boolean;
   readonly verification: CodeSnapshot;
   readonly passwordReset: CodeSnapshot;
+  readonly invitation: CodeSnapshot;
 };
 
 function snapshot(account: Account): Snapshot {
@@ -186,6 +290,7 @@ function snapshot(account: Account): Snapshot {
     isEmailVerified: account.isEmailVerified,
     verification: snapshotCode(account.latestVerification),
     passwordReset: snapshotCode(account.latestPasswordReset),
+    invitation: snapshotCode(account.latestInvitation),
   };
 }
 
@@ -224,6 +329,7 @@ async function save(
   }
   await saveCode(tx, account.latestVerification, before.verification);
   await saveCode(tx, account.latestPasswordReset, before.passwordReset);
+  await saveCode(tx, account.latestInvitation, before.invitation);
 
   const revocation = account.sessionRevocation;
   if (revocation) {

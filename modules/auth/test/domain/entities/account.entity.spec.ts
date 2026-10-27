@@ -1,6 +1,7 @@
+import { Email } from '@repo/common';
 import { describe, expect, it } from 'vitest';
-import { EMAIL_CODE_PURPOSE, PASSWORD_RESET_POLICY } from '../../../src/domain';
-import { accountWith, at, code, NOW } from '../../fixtures';
+import { Account, EMAIL_CODE_PURPOSE, PASSWORD_RESET_POLICY } from '../../../src/domain';
+import { ACCOUNT_ID, accountWith, at, code, NOW } from '../../fixtures';
 
 const RESET = EMAIL_CODE_PURPOSE.PASSWORD_RESET;
 const VERIFY = EMAIL_CODE_PURPOSE.EMAIL_VERIFICATION;
@@ -137,5 +138,73 @@ describe('Account', () => {
 
     expect(account.latestVerification).toBe(verification);
     expect(verification.isActive).toBe(true);
+  });
+});
+
+describe('Account invitations', () => {
+  const INVITE = EMAIL_CODE_PURPOSE.ACCOUNT_INVITATION;
+
+  it('starts an invited account unverified, holding its invitation', () => {
+    const invitation = code(INVITE);
+
+    const account = Account.invite({
+      id: ACCOUNT_ID,
+      email: Email.create('staff@cinema.local'),
+      fullName: ' Staff ',
+      passwordHash: 'random',
+      invitation,
+    });
+
+    expect(account.isEmailVerified).toBe(false);
+    expect(account.latestInvitation).toBe(invitation);
+    expect(account.fullName).toBe('Staff');
+  });
+
+  it('accepting sets the password and verifies the email', () => {
+    const invitation = code(INVITE);
+    const account = accountWith({ isEmailVerified: false, invitation });
+
+    expect(account.acceptInvitation(invitation.id, matches, 'hash-2', NOW)).toBe('ACCEPTED');
+
+    expect(account.passwordHash).toBe('hash-2');
+    expect(account.isEmailVerified).toBe(true);
+    expect(invitation.consumedAt).toEqual(NOW);
+  });
+
+  it('records a wrong code and refuses a used one', () => {
+    const invitation = code(INVITE);
+    const account = accountWith({ isEmailVerified: false, invitation });
+
+    expect(account.acceptInvitation(invitation.id, wrong, 'hash-2', NOW)).toBe('INVALID');
+    expect(invitation.failedAttempts).toBe(1);
+
+    account.acceptInvitation(invitation.id, matches, 'hash-2', NOW);
+    expect(account.acceptInvitation(invitation.id, matches, 'hash-3', NOW)).toBe('INVALID');
+  });
+
+  it('keeps an invitation valid for days, not minutes', () => {
+    const invitation = code(INVITE);
+    const account = accountWith({ isEmailVerified: false, invitation });
+
+    expect(account.acceptInvitation(invitation.id, matches, 'h', at(NOW, 24 * 3600))).toBe(
+      'ACCEPTED',
+    );
+  });
+
+  it('reinviting replaces a pending code, and refuses once accepted', () => {
+    const first = code(INVITE);
+    const pending = accountWith({ isEmailVerified: false, invitation: first });
+
+    expect(pending.reinvite(code(INVITE), NOW)).toBe(true);
+    expect(first.revokedAt).toEqual(NOW);
+
+    expect(accountWith({ isEmailVerified: true }).reinvite(code(INVITE), NOW)).toBe(false);
+  });
+
+  it('a reset code cannot accept an invitation', () => {
+    const reset = code(RESET);
+    const account = accountWith({ isEmailVerified: false, passwordReset: reset });
+
+    expect(account.acceptInvitation(reset.id, matches, 'hash-2', NOW)).toBe('INVALID');
   });
 });

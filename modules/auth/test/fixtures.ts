@@ -33,6 +33,7 @@ export function accountWith(
     passwordHash?: string;
     verification?: EmailCode | null;
     passwordReset?: EmailCode | null;
+    invitation?: EmailCode | null;
   } = {},
 ): Account {
   return Account.restore(
@@ -46,6 +47,7 @@ export function accountWith(
     {
       verification: overrides.verification ?? null,
       passwordReset: overrides.passwordReset ?? null,
+      invitation: overrides.invitation ?? null,
     },
   );
 }

@@ -48,6 +48,12 @@ function accountsWith(account: Account | null) {
     findOwnerOfPasswordReset: vi.fn(),
     findPasswordCheck: vi.fn(),
     findOwnerOfVerification: vi.fn(),
+    findInvitationTarget: vi.fn(),
+    findOwnerOfInvitation: vi.fn(),
+    findRole: vi.fn(),
+    isOpenTheater: vi.fn(),
+    clusterExists: vi.fn(),
+    createFirstAdmin: vi.fn(),
     create: vi.fn(),
     modify: vi.fn(async (_id: string, change: (a: Account) => unknown) =>
       account ? change(account) : null,
@@ -375,6 +381,7 @@ describe('ForgotPasswordHandler', () => {
     } satisfies EmailVerificationLimiter;
     const mailer = {
       sendVerificationCode: vi.fn(),
+      sendInvitation: vi.fn(),
       sendPasswordResetCode: vi.fn(),
     } satisfies AuthMailer;
     const handler = new ForgotPasswordHandler(

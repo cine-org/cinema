@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
+  AcceptInvitationCommand,
+  AcceptInvitationHandler,
   AuthenticateHandler,
   AuthenticateQuery,
   ChangePasswordCommand,
@@ -8,6 +10,8 @@ import {
   ForgotPasswordHandler,
   GetAccountProfileHandler,
   GetAccountProfileQuery,
+  InviteInternalAccountCommand,
+  InviteInternalAccountHandler,
   ListSessionsHandler,
   ListSessionsQuery,
   LoginCommand,
@@ -28,11 +32,14 @@ import {
   RevokeSessionHandler,
   VerifyEmailCommand,
   VerifyEmailHandler,
+  type AcceptInvitationCommandProps,
   type AccessTokenClaims,
   type AccountProfile,
   type AuthenticatedAccount,
   type AuthSessionSurface,
   type ChangePasswordCommandProps,
+  type InvitationSent,
+  type InviteInternalAccountCommandProps,
   type LoginCommandProps,
   type PasswordResetAccepted,
   type RegisterCommandProps,
@@ -62,7 +69,17 @@ export class AuthService {
     private readonly forgotPasswordHandler: ForgotPasswordHandler,
     private readonly resetPasswordHandler: ResetPasswordHandler,
     private readonly changePasswordHandler: ChangePasswordHandler,
+    private readonly inviteHandler: InviteInternalAccountHandler,
+    private readonly acceptInvitationHandler: AcceptInvitationHandler,
   ) {}
+
+  async inviteInternalAccount(props: InviteInternalAccountCommandProps): Promise<InvitationSent> {
+    return this.inviteHandler.execute(new InviteInternalAccountCommand(props));
+  }
+
+  async acceptInvitation(props: AcceptInvitationCommandProps): Promise<void> {
+    await this.acceptInvitationHandler.execute(new AcceptInvitationCommand(props));
+  }
 
   async forgotPassword(email: string): Promise<PasswordResetAccepted> {
     return this.forgotPasswordHandler.execute(new ForgotPasswordCommand({ email }));

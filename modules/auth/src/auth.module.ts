@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { RateLimitModule } from '@repo/rate-limit';
 import {
+  AcceptInvitationHandler,
   AccessTokenIssuer,
   AccountReadRepository,
   AccountWriteRepository,
@@ -14,10 +15,12 @@ import {
   AuthSessionReadRepository,
   AuthSessionWriteRepository,
   ChangePasswordHandler,
+  CreateFirstAdminHandler,
   EmailOtpProtector,
   EmailVerificationLimiter,
   ForgotPasswordHandler,
   GetAccountProfileHandler,
+  InviteInternalAccountHandler,
   ListSessionsHandler,
   LoginHandler,
   LoginLimiter,
@@ -79,6 +82,9 @@ const handlers = [
   ForgotPasswordHandler,
   ResetPasswordHandler,
   ChangePasswordHandler,
+  InviteInternalAccountHandler,
+  AcceptInvitationHandler,
+  CreateFirstAdminHandler,
 ];
 
 // Needs DatabaseModule and CacheModule registered by the app.
@@ -121,7 +127,8 @@ export class AuthModule {
         },
         ...handlers,
       ],
-      exports: [...handlers],
+      // PasswordHasher too: tests and tooling hash passwords the way accounts do.
+      exports: [...handlers, PasswordHasher],
     };
   }
 }

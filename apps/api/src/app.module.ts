@@ -2,7 +2,6 @@ import { Module, type MiddlewareConsumer, type NestModule } from '@nestjs/common
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { CacheModule } from '@repo/cache';
 import { DatabaseModule } from '@repo/database';
-import { IamModule } from '@repo/iam';
 import { GlobalExceptionFilter } from '@/common/filters';
 import { requestIdMiddleware } from '@/common/middleware';
 import { ResponseEnvelopeInterceptor } from '@/common/interceptors';
@@ -10,6 +9,7 @@ import { RequestValidationPipe } from '@/common/pipes';
 import { ConfigModule, ConfigService } from '@/config';
 import { HealthController } from '@/health.controller';
 import { AdminAccessGuard, AuthModule } from '@/modules/auth';
+import { IamModule } from '@/modules/iam';
 import { TheatersModule } from '@/modules/theaters';
 import { UsersModule } from '@/modules/users';
 

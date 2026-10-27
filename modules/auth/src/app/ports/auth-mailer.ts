@@ -9,6 +9,13 @@ export abstract class AuthMailer {
     verificationId: string;
     expiresInMinutes: number;
   }): void;
+  abstract sendInvitation(input: {
+    to: Email;
+    otp: string;
+    invitationId: string;
+    roleName: string;
+    expiresInHours: number;
+  }): void;
   abstract sendPasswordResetCode(input: {
     to: Email;
     otp: string;

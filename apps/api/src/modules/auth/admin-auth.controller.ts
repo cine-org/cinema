@@ -17,7 +17,9 @@ import { AuthService } from './auth.service';
 import { CurrentAuth } from './bearer-auth.decorator';
 import { clientInfo } from './client-info';
 import {
+  AdminAcceptInvitationRequestDto,
   AdminAccessTokenResponseDto,
+  AdminInvitationAcceptedResponseDto,
   AdminLoginRequestDto,
   AdminLogoutAllResponseDto,
   AdminLogoutResponseDto,
@@ -98,6 +100,19 @@ export class AdminAuthController {
     await this.auth.logout(this.cookie.read(request));
     this.cookie.clear(response);
     return { loggedOut: true };
+  }
+
+  @Post('accept-invitation')
+  @PublicAdminRoute()
+  @RateLimit({ key: 'admin-auth:accept-invitation', capacity: 30, refillIntervalMs: 2_000 })
+  @ApiSuccess(AdminInvitationAcceptedResponseDto, {
+    description: 'Password set and email verified; the account can sign in.',
+  })
+  async acceptInvitation(
+    @Body() body: AdminAcceptInvitationRequestDto,
+  ): Promise<AdminInvitationAcceptedResponseDto> {
+    await this.auth.acceptInvitation(body);
+    return { accepted: true };
   }
 
   @Post('logout-all')

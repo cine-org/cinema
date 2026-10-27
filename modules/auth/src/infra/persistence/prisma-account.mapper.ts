@@ -8,11 +8,13 @@ export class PrismaAccountMapper {
     codes: {
       verification: Prisma.AuthChallengeModel | null;
       passwordReset: Prisma.AuthChallengeModel | null;
+      invitation: Prisma.AuthChallengeModel | null;
     },
   ): Account {
     const restored: AccountCodes = {
       verification: codes.verification ? PrismaAccountMapper.toCode(codes.verification) : null,
       passwordReset: codes.passwordReset ? PrismaAccountMapper.toCode(codes.passwordReset) : null,
+      invitation: codes.invitation ? PrismaAccountMapper.toCode(codes.invitation) : null,
     };
     return Account.restore(
       {

@@ -13,6 +13,7 @@ export type AccountProps = {
 export type AccountCodes = {
   readonly verification: EmailCode | null;
   readonly passwordReset: EmailCode | null;
+  readonly invitation: EmailCode | null;
 };
 
 export type RegisterAccountInput = {
@@ -23,6 +24,15 @@ export type RegisterAccountInput = {
   readonly verification: EmailCode;
 };
 
+export type InviteAccountInput = {
+  readonly id: string;
+  readonly email: Email;
+  readonly fullName?: string | null;
+  // Of a random password nobody knows: the invitee sets theirs on acceptance.
+  readonly passwordHash: string;
+  readonly invitation: EmailCode;
+};
+
 // Every session of the account must end, in the same transaction as the change that asks for it.
 export type SessionRevocation = {
   readonly reason: 'PASSWORD_RESET' | 'PASSWORD_CHANGED';
@@ -31,12 +41,14 @@ export type SessionRevocation = {
 
 export type VerifyEmailResult = 'VERIFIED' | 'ALREADY_VERIFIED' | 'INVALID' | 'TOO_MANY_ATTEMPTS';
 export type ResetPasswordResult = 'RESET' | 'INVALID' | 'TOO_MANY_ATTEMPTS';
+export type AcceptInvitationResult = 'ACCEPTED' | 'INVALID' | 'TOO_MANY_ATTEMPTS';
 
-type CodeSlot = 'verification' | 'passwordReset';
+type CodeSlot = 'verification' | 'passwordReset' | 'invitation';
 
 const SLOT_PURPOSE: Record<CodeSlot, EmailCodePurpose> = {
   verification: EMAIL_CODE_PURPOSE.EMAIL_VERIFICATION,
   passwordReset: EMAIL_CODE_PURPOSE.PASSWORD_RESET,
+  invitation: EMAIL_CODE_PURPOSE.ACCOUNT_INVITATION,
 };
 
 // An account with the latest code of each purpose. Methods return results instead of throwing,
@@ -68,9 +80,25 @@ export class Account {
         fullName: normalizeFullName(input.fullName),
         isEmailVerified: false,
       },
-      { verification: null, passwordReset: null },
+      { verification: null, passwordReset: null, invitation: null },
     );
     account.attach('verification', input.verification);
+    return account;
+  }
+
+  // An internal account: unverified until the invitee enters the code and sets a password.
+  static invite(input: InviteAccountInput): Account {
+    const account = new Account(
+      {
+        id: input.id,
+        email: input.email,
+        passwordHash: input.passwordHash,
+        fullName: normalizeFullName(input.fullName),
+        isEmailVerified: false,
+      },
+      { verification: null, passwordReset: null, invitation: null },
+    );
+    account.attach('invitation', input.invitation);
     return account;
   }
 
@@ -152,6 +180,32 @@ export class Account {
     return 'RESET';
   }
 
+  // A new code for a pending invitation, replacing the previous one. False once accepted.
+  reinvite(code: EmailCode, now: Date): boolean {
+    if (this.props.isEmailVerified) return false;
+    this.replaceCode('invitation', code, now);
+    return true;
+  }
+
+  // A correct code proves the mailbox: the email is verified and the password set.
+  acceptInvitation(
+    invitationId: string,
+    matches: (code: EmailCode) => boolean,
+    passwordHash: string,
+    now: Date,
+  ): AcceptInvitationResult {
+    const code = this.codes.invitation;
+    if (code?.id !== invitationId || code.isConsumed) return 'INVALID';
+
+    const checked = checkCode(code, matches, now);
+    if (checked !== 'MATCHED') return checked;
+
+    code.consume(now);
+    this.props.passwordHash = passwordHash;
+    this.props.isEmailVerified = true;
+    return 'ACCEPTED';
+  }
+
   // `verifiedHash` is the hash the current password was checked against, outside the lock. False
   // if the password changed since, so the check no longer holds. Ends every session, this one too.
   changePassword(verifiedHash: string, passwordHash: string, now: Date): boolean {
@@ -211,6 +265,10 @@ export class Account {
 
   get latestPasswordReset(): EmailCode | null {
     return this.codes.passwordReset;
+  }
+
+  get latestInvitation(): EmailCode | null {
+    return this.codes.invitation;
   }
 
   get replacedCodes(): readonly EmailCode[] {

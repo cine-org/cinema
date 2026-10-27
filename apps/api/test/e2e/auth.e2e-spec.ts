@@ -28,6 +28,9 @@ class CapturingMailer implements AuthMailer {
   sendVerificationCode(input: { verificationId: string; otp: string }): void {
     this.codes.set(input.verificationId, input.otp);
   }
+  sendInvitation(input: { invitationId: string; otp: string }): void {
+    this.codes.set(input.invitationId, input.otp);
+  }
   sendPasswordResetCode(input: { resetId: string; otp: string }): void {
     this.codes.set(input.resetId, input.otp);
   }

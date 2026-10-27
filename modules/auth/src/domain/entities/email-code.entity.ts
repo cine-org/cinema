@@ -1,8 +1,13 @@
-import { EMAIL_VERIFICATION_POLICY, PASSWORD_RESET_POLICY } from '../policies';
+import {
+  ACCOUNT_INVITATION_POLICY,
+  EMAIL_VERIFICATION_POLICY,
+  PASSWORD_RESET_POLICY,
+} from '../policies';
 
 export const EMAIL_CODE_PURPOSE = {
   EMAIL_VERIFICATION: 'EMAIL_VERIFICATION',
   PASSWORD_RESET: 'PASSWORD_RESET',
+  ACCOUNT_INVITATION: 'ACCOUNT_INVITATION',
 } as const;
 
 export type EmailCodePurpose = (typeof EMAIL_CODE_PURPOSE)[keyof typeof EMAIL_CODE_PURPOSE];
@@ -10,6 +15,7 @@ export type EmailCodePurpose = (typeof EMAIL_CODE_PURPOSE)[keyof typeof EMAIL_CO
 const POLICIES = {
   EMAIL_VERIFICATION: EMAIL_VERIFICATION_POLICY,
   PASSWORD_RESET: PASSWORD_RESET_POLICY,
+  ACCOUNT_INVITATION: ACCOUNT_INVITATION_POLICY,
 } as const satisfies Record<EmailCodePurpose, { otpTtlSeconds: number; maxFailedAttempts: number }>;
 
 export function emailCodePolicy(purpose: EmailCodePurpose) {

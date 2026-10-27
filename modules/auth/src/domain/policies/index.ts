@@ -1,3 +1,4 @@
+export * from './account-invitation.policy';
 export * from './auth-session.policy';
 export * from './email-verification.policy';
 export * from './login.policy';

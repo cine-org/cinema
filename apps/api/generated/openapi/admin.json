@@ -1,6 +1,437 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/api/v1/admin/permissions": {
+      "get": {
+        "operationId": "AdminPermissionsController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Every permission a role can hold, as resource:action keys.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          },
+                          "example": [
+                            "theaters:read"
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-roles"
+        ]
+      }
+    },
+    "/api/v1/admin/roles": {
+      "get": {
+        "operationId": "AdminRolesController_list_v1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Every role: system roles first, then custom roles by name.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AdminRoleResponseDto"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-roles"
+        ]
+      },
+      "post": {
+        "operationId": "AdminRolesController_create_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminCreateRoleRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Custom role created; a copy of a role passes its permissions.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-roles"
+        ]
+      }
+    },
+    "/api/v1/admin/roles/{id}": {
+      "get": {
+        "operationId": "AdminRolesController_findById_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A single role.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminRoleResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-roles"
+        ]
+      }
+    },
+    "/api/v1/admin/roles/{id}/permissions": {
+      "put": {
+        "operationId": "AdminRolesController_replacePermissions_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminReplaceRolePermissionsRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Permissions replaced; SUPER_ADMIN and the caller’s own role refuse.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminPermissionChangeResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-roles"
+        ]
+      }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "operationId": "AdminEmployeesController_list_v1",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "employee"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Internal accounts with their role, pending invitations included; newest first. A cluster or theater role sees its own theaters only.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/PaginatedResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/AdminEmployeeResponseDto"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{id}": {
+      "patch": {
+        "operationId": "AdminEmployeesController_changeRole_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminChangeUserRoleRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role and scope replaced in one step; the account gets them on its next request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/IdResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-users"
+        ]
+      },
+      "get": {
+        "operationId": "AdminUsersController_findById_v1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A single user.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminUserResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "users"
+        ]
+      }
+    },
     "/api/v1/admin/auth/login": {
       "post": {
         "operationId": "AdminAuthController_login_v1",
@@ -200,6 +631,67 @@
         ]
       }
     },
+    "/api/v1/admin/auth/accept-invitation": {
+      "post": {
+        "operationId": "AdminAuthController_acceptInvitation_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminAcceptInvitationRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password set and email verified; the account can sign in.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminInvitationAcceptedResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; see the Retry-After header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-auth"
+        ]
+      }
+    },
     "/api/v1/admin/auth/logout-all": {
       "post": {
         "operationId": "AdminAuthController_logoutAll_v1",
@@ -373,6 +865,67 @@
         ],
         "tags": [
           "admin-auth"
+        ]
+      }
+    },
+    "/api/v1/admin/users/invitations": {
+      "post": {
+        "operationId": "AdminUserInvitationsController_invite_v1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminInviteUserRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Account created and invitation emailed; inviting a pending account again sends a new code.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminInvitationSentResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests; see the Retry-After header.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "admin-users"
         ]
       }
     },
@@ -1943,56 +2496,6 @@
           "seat-types"
         ]
       }
-    },
-    "/api/v1/admin/users/{id}": {
-      "get": {
-        "operationId": "AdminUsersController_findById_v1",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A single user.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/SuccessResponse"
-                    },
-                    {
-                      "type": "object",
-                      "required": [
-                        "data"
-                      ],
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/AdminUserResponseDto"
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": [
-          "users"
-        ]
-      }
     }
   },
   "info": {
@@ -2011,6 +2514,30 @@
       }
     },
     "schemas": {
+      "AdminAcceptInvitationRequestDto": {
+        "type": "object",
+        "properties": {
+          "invitationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "otp": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "example": "012345"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "invitationId",
+          "otp",
+          "password"
+        ]
+      },
       "AdminAccessTokenResponseDto": {
         "type": "object",
         "properties": {
@@ -2034,6 +2561,84 @@
           "accessToken",
           "tokenType",
           "accessTokenExpiresAt"
+        ]
+      },
+      "AdminChangeUserRoleRequestDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "example": "BOX_OFFICE",
+            "description": "Key of an internal role."
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "CLUSTER",
+              "THEATER"
+            ],
+            "description": "One of the scopes the role allows."
+          },
+          "clusterId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Required for CLUSTER, absent otherwise."
+          },
+          "theaterId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Required for THEATER, absent otherwise."
+          }
+        },
+        "required": [
+          "role",
+          "scope"
+        ]
+      },
+      "AdminCreateRoleRequestDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]{1,39}$",
+            "example": "NIGHT_SUPERVISOR",
+            "description": "Never changes; must not be a system role key."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 60,
+            "example": "Night supervisor"
+          },
+          "scopes": {
+            "type": "array",
+            "description": "Where the role may be granted.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "GLOBAL",
+                "CLUSTER",
+                "THEATER"
+              ]
+            }
+          },
+          "permissions": {
+            "maxItems": 100,
+            "example": [
+              "theaters:read"
+            ],
+            "description": "To copy a role, pass its permissions.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "scopes",
+          "permissions"
         ]
       },
       "AdminCreateRoomRequestDto": {
@@ -2130,6 +2735,178 @@
           "streetAddress",
           "ward",
           "province"
+        ]
+      },
+      "AdminEmployeeResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true,
+            "format": "email"
+          },
+          "isEmailVerified": {
+            "type": "boolean",
+            "description": "False until the invitation is accepted."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active"
+            ],
+            "description": "Suspending and banning come with the user module."
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "role": {
+            "$ref": "#/components/schemas/AdminEmployeeRoleDto"
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "CLUSTER",
+              "THEATER"
+            ]
+          },
+          "clusterId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Set for CLUSTER."
+          },
+          "theaterId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "description": "Set for THEATER."
+          }
+        },
+        "required": [
+          "id",
+          "fullName",
+          "email",
+          "isEmailVerified",
+          "createdAt",
+          "status",
+          "deletedAt",
+          "role",
+          "scope",
+          "clusterId",
+          "theaterId"
+        ]
+      },
+      "AdminEmployeeRoleDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "BOX_OFFICE"
+          },
+          "name": {
+            "type": "string",
+            "example": "Box office"
+          }
+        },
+        "required": [
+          "key",
+          "name"
+        ]
+      },
+      "AdminInvitationAcceptedResponseDto": {
+        "type": "object",
+        "properties": {
+          "accepted": {
+            "type": "boolean",
+            "enum": [
+              true
+            ],
+            "description": "Sign in on /admin/auth/login with the new password."
+          }
+        },
+        "required": [
+          "accepted"
+        ]
+      },
+      "AdminInvitationSentResponseDto": {
+        "type": "object",
+        "properties": {
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "invitationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Sent with the code to accept the invitation."
+          },
+          "expiresInSeconds": {
+            "type": "number",
+            "example": 259200
+          }
+        },
+        "required": [
+          "accountId",
+          "invitationId",
+          "expiresInSeconds"
+        ]
+      },
+      "AdminInviteUserRequestDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "role": {
+            "type": "string",
+            "example": "BOX_OFFICE",
+            "description": "Key of an internal role."
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "CLUSTER",
+              "THEATER"
+            ],
+            "description": "One of the scopes the role allows."
+          },
+          "clusterId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Required for CLUSTER, absent otherwise."
+          },
+          "theaterId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Required for THEATER, absent otherwise."
+          },
+          "fullName": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "email",
+          "role",
+          "scope"
         ]
       },
       "AdminLoginRequestDto": {
@@ -2266,6 +3043,114 @@
           "name",
           "role",
           "initials"
+        ]
+      },
+      "AdminPermissionChangeResponseDto": {
+        "type": "object",
+        "properties": {
+          "added": {
+            "example": [
+              "rooms:create"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "removed": {
+            "example": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "added",
+          "removed"
+        ]
+      },
+      "AdminReplaceRolePermissionsRequestDto": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "maxItems": 100,
+            "example": [
+              "theaters:read",
+              "rooms:create"
+            ],
+            "description": "The whole new set; permissions left out are removed.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "permissions"
+        ]
+      },
+      "AdminRoleResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "key": {
+            "type": "string",
+            "example": "THEATER_MANAGER"
+          },
+          "name": {
+            "type": "string",
+            "example": "Theater manager"
+          },
+          "scopes": {
+            "type": "array",
+            "description": "Where the role may be granted.",
+            "items": {
+              "type": "string",
+              "enum": [
+                "GLOBAL",
+                "CLUSTER",
+                "THEATER",
+                "SELF"
+              ]
+            }
+          },
+          "isSystem": {
+            "type": "boolean",
+            "description": "Built in."
+          },
+          "isLocked": {
+            "type": "boolean",
+            "description": "Holds every permission; its permissions cannot be edited."
+          },
+          "permissions": {
+            "example": [
+              "theaters:read",
+              "rooms:create"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "users": {
+            "type": "number",
+            "description": "Accounts holding it now.",
+            "example": 6
+          }
+        },
+        "required": [
+          "id",
+          "key",
+          "name",
+          "scopes",
+          "isSystem",
+          "isLocked",
+          "permissions",
+          "users"
         ]
       },
       "AdminRoomLayoutResponseDto": {
@@ -2837,6 +3722,21 @@
           "AUTH.INVALID_EMAIL_OTP",
           "AUTH.OTP_ATTEMPTS_EXCEEDED",
           "IAM.PERMISSION_DENIED",
+          "IAM.ROLE_NOT_FOUND",
+          "IAM.INVALID_ROLE",
+          "IAM.ROLE_KEY_TAKEN",
+          "IAM.ROLE_LOCKED",
+          "IAM.UNKNOWN_PERMISSION",
+          "IAM.NOT_INTERNAL_ROLE",
+          "IAM.ROLE_SCOPE_MISMATCH",
+          "IAM.CLUSTER_NOT_FOUND",
+          "IAM.THEATER_UNAVAILABLE",
+          "IAM.ACCOUNT_NOT_FOUND",
+          "IAM.CUSTOMER_ACCOUNT",
+          "IAM.ACCOUNT_HAS_ROLE",
+          "IAM.SELF_ROLE_CHANGE",
+          "IAM.LAST_ADMIN",
+          "IAM.ADMIN_EXISTS",
           "THEATER.NOT_FOUND",
           "THEATER.SLUG_TAKEN",
           "THEATER.CLOSED",

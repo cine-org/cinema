@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Email } from '@repo/common';
+import { ROLE_SCOPE, SYSTEM_ROLE } from '@repo/iam';
 import {
   Account,
   EMAIL_CODE_PURPOSE,
@@ -60,6 +61,14 @@ export class RegisterHandler {
       const issued = this.otp.issue({ accountId: id, email, purpose: VERIFICATION, now });
       await this.accounts.create(
         Account.register({ id, email, passwordHash, fullName, verification: issued.code }),
+        // Registration always makes a customer; internal accounts come by invitation.
+        {
+          roleKey: SYSTEM_ROLE.CUSTOMER,
+          scope: ROLE_SCOPE.SELF,
+          clusterId: null,
+          theaterId: null,
+          grantedById: null,
+        },
       );
       return this.sent(email, issued);
     }

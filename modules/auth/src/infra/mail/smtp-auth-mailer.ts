@@ -61,6 +61,35 @@ export class SmtpAuthMailer implements AuthMailer, OnModuleDestroy {
     });
   }
 
+  sendInvitation(input: {
+    to: Email;
+    otp: string;
+    invitationId: string;
+    roleName: string;
+    expiresInHours: number;
+  }): void {
+    const requestedAt = formatTime(new Date());
+    const lines = [
+      `Bạn được mời làm ${input.roleName} trên hệ thống quản trị Cinema.`,
+      `Mã kích hoạt tài khoản của bạn là: ${input.otp}`,
+      `Mã có hiệu lực trong ${input.expiresInHours} giờ. Nhập mã và đặt mật khẩu để kích hoạt.`,
+      `Lời mời lúc ${requestedAt}.`,
+      SUPPORT_LINE,
+    ];
+
+    this.send(`invitation ${input.invitationId}`, {
+      to: input.to.value,
+      subject: 'Lời mời tham gia quản trị Cinema',
+      text: lines.join('\n'),
+      html: [
+        `<p>${lines[0]}</p>`,
+        '<p>Mã kích hoạt tài khoản của bạn là:</p>',
+        `<p style="font-size:24px;font-weight:bold;letter-spacing:4px">${input.otp}</p>`,
+        ...lines.slice(2).map((line) => `<p>${line}</p>`),
+      ].join(''),
+    });
+  }
+
   sendPasswordResetCode(input: {
     to: Email;
     otp: string;

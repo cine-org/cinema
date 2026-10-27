@@ -3,6 +3,7 @@ import { AuthModule as AuthDomainModule } from '@repo/auth';
 import { RateLimitModule } from '@repo/rate-limit';
 import { ConfigModule, ConfigService } from '@/config';
 import { AdminAccessGuard } from './admin-access.guard';
+import { AdminUserInvitationsController } from './admin-user-invitations.controller';
 import { AdminAuthController } from './admin-auth.controller';
 import { TheaterLocator } from './theater-locator';
 import { AuthController } from './auth.controller';
@@ -20,7 +21,7 @@ import { AdminRefreshCookie, RefreshCookie } from './refresh-cookie';
     // For @RateLimit on the controller.
     RateLimitModule,
   ],
-  controllers: [AuthController, AdminAuthController],
+  controllers: [AuthController, AdminAuthController, AdminUserInvitationsController],
   providers: [
     AuthService,
     BearerAuthGuard,

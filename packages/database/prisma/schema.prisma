@@ -32,6 +32,7 @@ model User {
 enum AuthChallengePurpose {
   EMAIL_VERIFICATION
   PASSWORD_RESET
+  ACCOUNT_INVITATION
 }
 
 // One-time code sent to the account's email. The OTP itself is never stored: secretDigest is an

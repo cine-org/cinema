@@ -20,7 +20,8 @@
     "test:cov": "cross-env NODE_ENV=test jest --config jest.config.mjs --coverage --passWithNoTests",
     "test:watch": "jest --config jest.config.mjs --watch",
     "generate": "pnpm build && node dist/openapi/generate.js",
-    "openapi:generate": "pnpm generate"
+    "openapi:generate": "pnpm generate",
+    "iam:create-admin": "node dist/cli/create-admin.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
