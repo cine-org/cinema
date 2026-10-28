@@ -1,18 +1,48 @@
 import { Logger, Module, type OnApplicationBootstrap } from '@nestjs/common';
 import {
+  AccessGrantRepository,
+  ChangeUserRoleHandler,
+  CreateRoleHandler,
+  GetAccessGrantHandler,
+  GetRoleHandler,
+  IamReadRepository,
+  ListPermissionsHandler,
+  ListRolesHandler,
   PermissionCatalogRepository,
+  ReplaceRolePermissionsHandler,
+  RoleAssignmentRepository,
+  RoleRepository,
   SyncPermissionCatalogCommand,
   SyncPermissionCatalogHandler,
 } from './app';
-import { PrismaPermissionCatalogRepository } from './infra';
+import {
+  PrismaAccessGrantRepository,
+  PrismaIamReadRepository,
+  PrismaPermissionCatalogRepository,
+  PrismaRoleAssignmentRepository,
+  PrismaRoleRepository,
+} from './infra';
 
-const handlers = [SyncPermissionCatalogHandler];
+const handlers = [
+  SyncPermissionCatalogHandler,
+  GetAccessGrantHandler,
+  CreateRoleHandler,
+  ReplaceRolePermissionsHandler,
+  ChangeUserRoleHandler,
+  ListPermissionsHandler,
+  ListRolesHandler,
+  GetRoleHandler,
+];
 
 // Needs DatabaseModule registered by the app. Syncs the permission catalog on startup, before the
 // app serves requests that check permissions.
 @Module({
   providers: [
     { provide: PermissionCatalogRepository, useClass: PrismaPermissionCatalogRepository },
+    { provide: AccessGrantRepository, useClass: PrismaAccessGrantRepository },
+    { provide: RoleRepository, useClass: PrismaRoleRepository },
+    { provide: RoleAssignmentRepository, useClass: PrismaRoleAssignmentRepository },
+    { provide: IamReadRepository, useClass: PrismaIamReadRepository },
     ...handlers,
   ],
   exports: [...handlers],
