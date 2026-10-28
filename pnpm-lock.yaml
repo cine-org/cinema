@@ -89,6 +89,9 @@ importers:
       '@repo/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@repo/iam':
+        specifier: workspace:*
+        version: link:../../modules/iam
       '@repo/rate-limit':
         specifier: workspace:*
         version: link:../../packages/rate-limit
@@ -488,6 +491,9 @@ importers:
       '@repo/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@repo/iam':
+        specifier: workspace:*
+        version: link:../iam
       '@repo/rate-limit':
         specifier: workspace:*
         version: link:../../packages/rate-limit
@@ -522,6 +528,31 @@ importers:
       libphonenumber-js:
         specifier: ^1.13.13
         version: 1.13.13
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../tooling/typescript-config
+      '@repo/vitest-config':
+        specifier: workspace:*
+        version: link:../../tooling/vitest-config
+      '@vitest/coverage-v8':
+        specifier: ^3.2.4
+        version: 3.2.4(vitest@3.2.4(@types/node@25.9.1)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3))
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/node@25.9.1)(jiti@2.6.1)(jsdom@26.1.0)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.22.3)
+
+  modules/iam:
+    dependencies:
+      '@nestjs/common':
+        specifier: ^11.0.1
+        version: 11.1.23(class-transformer@0.5.1)(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@repo/common':
+        specifier: workspace:*
+        version: link:../common
+      '@repo/database':
+        specifier: workspace:*
+        version: link:../../packages/database
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*

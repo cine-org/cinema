@@ -1,0 +1,10 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "db:seed": {
+      // Cluster and theater roles point at the clusters and theaters @repo/theaters seeds.
+      "dependsOn": ["^db:seed", "@repo/theaters#db:seed"]
+    }
+  }
+}

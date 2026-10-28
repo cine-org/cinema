@@ -30,6 +30,7 @@
     "@node-rs/argon2": "^2.0.2",
     "@repo/common": "workspace:*",
     "@repo/database": "workspace:*",
+    "@repo/iam": "workspace:*",
     "@repo/rate-limit": "workspace:*",
     "jose": "^5.10.0",
     "nodemailer": "^10.1.0"

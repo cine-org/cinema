@@ -102,6 +102,24 @@ async function seed(url: string): Promise<void> {
     }
     console.log(`seeded theater ${theater.details.slug} (${theater.rooms.length} rooms)`);
   }
+
+  // Clusters have no handlers yet, so they are written directly: one per province, holding the
+  // seeded theaters of that province.
+  for (const province of new Set(THEATERS.map((theater) => theater.details.province))) {
+    const cluster = await write.cluster.upsert({
+      where: { name: province },
+      update: {},
+      create: { name: province },
+    });
+    const slugs = THEATERS.filter((theater) => theater.details.province === province).map(
+      (theater) => theater.details.slug,
+    );
+    const { count } = await write.theater.updateMany({
+      where: { slug: { in: slugs }, clusterId: null },
+      data: { clusterId: cluster.id },
+    });
+    if (count > 0) console.log(`seeded cluster ${province} (${count} theaters)`);
+  }
 }
 
 const url = process.env.DATABASE_URL;

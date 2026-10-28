@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Email, TooManyRequestsException } from '@repo/common';
 import { DatabaseWriteClient, PRISMA_ERROR_CODE, Prisma, throwIfPrismaError } from '@repo/database';
+import { ROLE_SCOPE, SYSTEM_ROLE } from '@repo/iam';
 import type {
   AccountWriteRepository,
   LoginCredentials,
@@ -99,6 +100,14 @@ export class PrismaAccountWriteRepository implements AccountWriteRepository {
     try {
       await this.db.$transaction([
         this.db.user.create({ data: PrismaAccountMapper.toUserCreate(account) }),
+        // Everyone who registers is a customer; internal accounts come by invitation.
+        this.db.roleAssignment.create({
+          data: {
+            user: { connect: { id: account.id } },
+            role: { connect: { key: SYSTEM_ROLE.CUSTOMER } },
+            scope: ROLE_SCOPE.SELF,
+          },
+        }),
         this.db.authChallenge.create({
           data: PrismaAccountMapper.toCodeCreate(code, code.createdAt),
         }),
